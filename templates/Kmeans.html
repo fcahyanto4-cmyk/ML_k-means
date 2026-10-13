@@ -1,0 +1,2518 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pengelompokan Data Pajak</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Bootstrap Bundle JS (diperlukan untuk komponen accordion) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --bg-color: #f3f4f6;
+            --text-dark: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+            --patuh: #10b981;
+            --patuh-bg: rgba(16, 185, 129, 0.1);
+            --kurang: #f59e0b;
+            --kurang-bg: rgba(245, 158, 11, 0.1);
+            --tidak: #ef4444;
+            --tidak-bg: rgba(239, 68, 68, 0.1);
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            padding-top: 30px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 22px;
+        }
+
+        .sidebar-brand i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #9ca3af;
+            padding: 14px 20px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--sidebar-hover);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg,
+                    var(--primary-color),
+                    var(--primary-hover));
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+        }
+
+        /* CONTENT */
+        .content {
+            margin-left: 260px;
+            padding: 40px;
+        }
+
+        .card-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .info-box {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: #4338ca;
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: #eef2ff;
+        }
+
+        .table thead th {
+            border: none;
+            font-weight: 700;
+            color: #374151;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 14px;
+        }
+
+        .badge-custom {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge-tepat {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-telat {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .badge-belum {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .badge-cluster {
+            background: rgba(79, 70, 229, 0.1);
+            color: #4f46e5;
+        }
+
+        .badge-patuh {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-kurang {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .badge-tidak {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        /* STEP INDICATOR */
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .step-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* CLUSTER GRID */
+        .cluster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .cluster-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 24px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .cluster-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .cluster-card-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .cluster-card-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        svg.ring {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .pt {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pt-patuh {
+            fill: var(--patuh);
+        }
+
+        .pt-kurang {
+            fill: var(--kurang);
+        }
+
+        .pt-tidak {
+            fill: var(--tidak);
+        }
+
+        .majority-tag {
+            display: inline-block;
+            margin-top: 14px;
+            font-size: 12px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-weight: 600;
+        }
+
+        .tag-patuh {
+            background: var(--patuh-bg);
+            color: var(--patuh);
+        }
+
+        .tag-kurang {
+            background: var(--kurang-bg);
+            color: var(--kurang);
+        }
+
+        .tag-tidak {
+            background: var(--tidak-bg);
+            color: var(--tidak);
+        }
+
+        .legend-bar {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .legend-bar span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* DISTRIBUSI TABLE */
+        .dist-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        .dist-table thead {
+            background: #eef2ff;
+        }
+
+        .dist-table thead th {
+            padding: 12px 14px;
+            font-weight: 700;
+            color: #374151;
+            border: none;
+            text-align: center;
+        }
+
+        .dist-table thead th:first-child {
+            text-align: left;
+        }
+
+        .dist-table tbody td {
+            padding: 11px 14px;
+            border-top: 1px solid #f1f5f9;
+            text-align: center;
+        }
+
+        .dist-table tbody td:first-child {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .dist-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .max-cell {
+            font-weight: 700;
+            border-radius: 6px;
+            padding: 4px 10px;
+        }
+
+        .max-patuh {
+            background: var(--patuh-bg);
+            color: var(--patuh);
+        }
+
+        .max-kurang {
+            background: var(--kurang-bg);
+            color: var(--kurang);
+        }
+
+        .max-tidak {
+            background: var(--tidak-bg);
+            color: var(--tidak);
+        }
+
+        /* FORMULA CARD */
+        .formula-card {
+            background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
+            border: 1px solid #c7d2fe;
+            border-radius: 14px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .formula-eq {
+            font-size: 15px;
+            color: #4338ca;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .formula-steps {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin: 16px 0;
+        }
+
+        .formula-line {
+            font-size: 16px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .formula-arrow {
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+
+        /* RESULT BOX */
+        .result-box {
+            background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+        }
+
+        .result-box::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+        }
+
+        .result-label {
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .result-percent {
+            font-size: 18px;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .result-interp {
+            font-size: 14px;
+            opacity: 0.85;
+            max-width: 560px;
+            margin: 16px auto 0;
+            line-height: 1.6;
+        }
+
+        /* PROGRESS BAR */
+        .purity-progress-wrap {
+            max-width: 400px;
+            margin: 20px auto 0;
+        }
+
+        .purity-progress-bg {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .purity-progress-fill {
+            height: 100%;
+            background: white;
+            border-radius: 999px;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div class="sidebar-brand">
+            <i class="bi bi-hexagon-fill"></i>
+            <h4>Sistem Pajak</h4>
+        </div>
+
+        <div class="nav-links">
+
+            <a href="/">
+                <i class="bi bi-grid-1x2-fill"></i>
+                Beranda
+            </a>
+
+            <a href="/data_input">
+                <i class="bi bi-file-earmark-arrow-up"></i>
+                Input Data
+            </a>
+
+            <a href="/preprocessing">
+                <i class="bi bi-funnel"></i>
+                Pembersihan Data
+            </a>
+
+            <a href="/generate-kewajiban">
+                <i class="bi bi-clipboard-check"></i>
+                Kewajiban Pajak
+            </a>
+
+            <a href="/agregasi">
+                <i class="bi bi-layers"></i>
+                Ringkasan Data
+            </a>
+
+            <a href="/kmeans" class="active">
+                <i class="bi bi-diagram-3"></i>
+                Pengelompokan Data
+            </a>
+
+        </div>
+
+        <div class="nav-links logout-btn">
+            <a href="/logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+            </a>
+        </div>
+
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <div class="card-box">
+
+            <div class="title">
+                🤖 Pengelompokan Kepatuhan Pajak
+            </div>
+
+            <div class="subtitle">
+                Hasil analisis menggunakan metode K-Means untuk mengelompokkan tingkat kepatuhan wajib pajak.
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- TAHAPAN ALGORITMA K-MEANS: DARI CENTROID SAMPAI TERBENTUK KLASTER -->
+            <!-- ========================================== -->
+            {% if data %}
+            <div class="mt-4 mb-5">
+                <div class="title" style="font-size: 22px; font-weight: 700;">🧮 Tahapan Perhitungan K-Means</div>
+                <div class="subtitle" style="font-size: 13px; margin-bottom: 20px;">
+                    Penjabaran proses clustering secara bertahap: dari normalisasi data, penentuan centroid awal,
+                    alokasi anggota ke centroid terdekat, hingga centroid akhir yang membentuk klaster.
+                </div>
+
+                <!-- TAHAP 1 -->
+                <div class="card-box mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; padding:22px;">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div>
+                            <div class="step-title">Normalisasi Data (Min-Max Scaling)</div>
+                            <div class="step-desc">
+                                Setiap fitur ({{ fitur_names|join(', ') if fitur_names else 'Tepat Waktu, Terlambat,
+                                Belum Bayar, Rata-rata Keterlambatan' }})
+                                diskalakan ke rentang 0&ndash;1 dengan rumus
+                                <code>x' = (x &minus; min) / (max &minus; min)</code>, agar setiap fitur memiliki bobot
+                                yang setara
+                                saat menghitung jarak Euclidean (fitur dengan skala besar seperti "rata-rata hari
+                                terlambat" tidak akan mendominasi fitur proporsi 0&ndash;1).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAHAP 2 -->
+                <div class="card-box mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; padding:22px;">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div>
+                            <div class="step-title">Inisialisasi Centroid Awal (K-Means++)</div>
+                            <div class="step-desc">
+                                Titik centroid awal dipilih menggunakan metode <strong>K-Means++</strong>: centroid
+                                pertama dipilih acak, centroid berikutnya dipilih dengan peluang lebih besar pada titik
+                                yang jauh dari centroid yang sudah ada. Proses ini diulang <strong>{{ 10 }}x
+                                    (n_init)</strong> dengan seed acak berbeda, dan hasil dengan <em>inertia</em>
+                                (total jarak kuadrat titik ke centroid) paling kecil yang dipakai sebagai centroid
+                                final.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAHAP 3 -->
+                <div class="card-box mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; padding:22px;">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div>
+                            <div class="step-title">Iterasi: Alokasi Anggota &amp; Update Centroid</div>
+                            <div class="step-desc">
+                                Dua langkah berikut diulang bergantian sampai centroid tidak lagi bergeser signifikan
+                                (konvergen) atau batas maksimum iterasi tercapai:
+                                <ol class="mb-0 mt-2" style="padding-left:18px;">
+                                    <li><strong>Assignment</strong> &mdash; setiap wajib pajak dimasukkan ke cluster
+                                        dengan centroid <em>terdekat</em>, dihitung memakai jarak Euclidean pada data
+                                        yang sudah dinormalisasi:
+                                        <code>d = &radic;[(x&#8321;&minus;c&#8321;)&sup2; + (x&#8322;&minus;c&#8322;)&sup2; + (x&#8323;&minus;c&#8323;)&sup2; + (x&#8324;&minus;c&#8324;)&sup2;]</code>
+                                    </li>
+                                    <li><strong>Update</strong> &mdash; posisi centroid baru dihitung ulang sebagai
+                                        <em>rata-rata</em> seluruh anggota yang saat itu masuk ke cluster tersebut.
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if iterasi and iterasi|length > 0 %}
+                    <hr class="my-3">
+                    <div style="font-size:13px; font-weight:700; margin-bottom:8px;">
+                        <i class="bi bi-list-ol me-1" style="color:var(--primary-color);"></i>
+                        Rincian Angka Tiap Iterasi (Percobaan Terbaik dari {{ 10 }} Inisialisasi)
+                    </div>
+                    <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:14px;">
+                        Berikut posisi centroid (sudah dikembalikan ke satuan asli) pada setiap iterasi, mulai
+                        dari centroid awal (Iterasi 0) sampai iterasi terakhir saat pergeseran centroid
+                        (Σ pergeseran&sup2;) lebih kecil dari toleransi (tol = 0.0001) &mdash; yaitu saat klaster
+                        dinyatakan <strong>konvergen / terbentuk</strong>.
+                        {% if iterasi_dipotong %}
+                        Total ada <strong>{{ total_iterasi }} iterasi</strong>; untuk keringkasan hanya
+                        ditampilkan beberapa iterasi awal dan iterasi terakhir (paling menentukan).
+                        {% endif %}
+                    </div>
+
+                    {% for it in iterasi %}
+                    <div class="mb-3" style="border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2"
+                            style="background:{{ 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))' if it.konvergen else '#eef2ff' }}; {{ 'color:white;' if it.konvergen else 'color:#4338ca;' }}">
+                            <span style="font-weight:700; font-size:13px;">
+                                {% if it.iter == 0 %}
+                                Iterasi 0 &mdash; Centroid Awal (hasil K-Means++)
+                                {% else %}
+                                Iterasi {{ it.iter }}{% if it.konvergen %} &mdash; Konvergen ✓{% endif %}
+                                {% endif %}
+                            </span>
+                            {% if it.shift is not none %}
+                            <span style="font-size:12px;">Pergeseran centroid (Σ Δ²) = {{ it.shift }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0" style="font-size:12px;">
+                                <thead style="background:#f8fafc;">
+                                    <tr>
+                                        <th>Cluster</th>
+                                        <th>Tepat Waktu</th>
+                                        <th>Terlambat</th>
+                                        <th>Belum Bayar</th>
+                                        <th>Rata² Keterlambatan</th>
+                                        <th>Jumlah Anggota Sementara</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in it.centroid_rows %}
+                                    <tr>
+                                        <td>
+                                            <strong>Cluster {{ row.cluster }}</strong>
+                                            <br><span style="font-size:11px; color:var(--text-muted);">{{ row.label }}</span>
+                                        </td>
+                                        <td>{{ (row.tepat * 100)|round(2) }}%</td>
+                                        <td>{{ (row.telat * 100)|round(2) }}%</td>
+                                        <td>{{ (row.belum * 100)|round(2) }}%</td>
+                                        <td>{{ row.avg_telat }} hari</td>
+                                        <td>{{ row.jumlah_anggota if row.jumlah_anggota != '-' else '— (belum dialokasikan)' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="alert alert-success border-0 mt-2"
+                        style="border-radius:10px; background:rgba(16,185,129,0.08); color:#065f46; font-size:12.5px;">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        Setelah <strong>{{ total_iterasi }} iterasi</strong>, pergeseran centroid sudah lebih kecil
+                        dari toleransi sehingga proses dihentikan. Posisi centroid pada iterasi terakhir inilah
+                        yang menjadi <strong>centroid akhir</strong> (Tahap 4 di bawah) dan menentukan klaster
+                        final setiap wajib pajak.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- TAHAP 4: TABEL CENTROID AKHIR -->
+                <div class="card-box mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; padding:22px;">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div>
+                            <div class="step-title">Centroid Akhir per Cluster</div>
+                            <div class="step-desc">Nilai centroid setelah iterasi konvergen &mdash; ini adalah "titik
+                                pusat" yang mewakili karakteristik rata-rata tiap cluster.</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-bordered align-middle" style="font-size:13px;">
+                            <thead style="background:#eef2ff;">
+                                <tr>
+                                    <th>Cluster</th>
+                                    <th>Label</th>
+                                    <th>Tepat Waktu (rata-rata)</th>
+                                    <th>Terlambat (rata-rata)</th>
+                                    <th>Belum Bayar (rata-rata)</th>
+                                    <th>Rata-rata Hari Terlambat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in centroids %}
+                                <tr>
+                                    <td><strong>Cluster {{ c.cluster }}</strong></td>
+                                    <td>
+                                        {% if c.label == 'Patuh' %}<span class="badge-custom badge-patuh">{{ c.label
+                                            }}</span>
+                                        {% elif c.label == 'Kurang Patuh' %}<span class="badge-custom badge-kurang">{{
+                                            c.label }}</span>
+                                        {% elif c.label == 'Tidak Patuh' %}<span class="badge-custom badge-tidak">{{
+                                            c.label }}</span>
+                                        {% else %}<span class="badge-custom badge-cluster">{{ c.label }}</span>{% endif
+                                        %}
+                                    </td>
+                                    <td>{{ (c.tepat * 100)|round(1) }}%</td>
+                                    <td>{{ (c.telat * 100)|round(1) }}%</td>
+                                    <td>{{ (c.belum * 100)|round(1) }}%</td>
+                                    <td>{{ c.avg_telat }} hari</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="font-size:12px; color:#9ca3af; margin-top:6px;">
+                        Centroid ini dipakai pada tahap berikutnya untuk menentukan cluster tiap wajib pajak, lihat
+                        kolom
+                        "Perhitungan" pada tabel di bawah (jarak ke tiap centroid, yang terkecil menentukan cluster
+                        akhir).
+                    </div>
+                </div>
+
+                <!-- TAHAP 4b: CONTOH PERHITUNGAN NYATA UNTUK SELURUH DATA -->
+                <div class="card-box mb-3" style="background:#f8fafc; border:1px solid #e2e8f0; padding:22px;">
+                    <div class="step-header mb-3">
+                        <div class="step-number">4b</div>
+                        <div>
+                            <div class="step-title">Perhitungan Nyata: dari Centroid ke Klaster (Seluruh Wajib Pajak)
+                            </div>
+                            <div class="step-desc">
+                                Penjabaran perhitungan jarak untuk <strong>setiap</strong> wajib pajak terhadap
+                                seluruh centroid akhir, sampai diperoleh klaster hasil akhirnya. Klik salah satu
+                                nama untuk melihat rincian perhitungannya.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FILTER BAR TAHAP 4b -->
+                    <div class="p-3 mb-3 bg-white border rounded-3 shadow-sm">
+                        <div class="row align-items-center g-2">
+                            <div class="col-lg-7 col-md-12 d-flex flex-wrap gap-2 align-items-center">
+                                <span class="fw-bold text-muted small me-1"><i class="bi bi-funnel-fill"></i> Filter
+                                    Cluster:</span>
+                                <button type="button" class="btn btn-sm btn-primary active btn-filter-4b"
+                                    data-cluster="all">
+                                    Semua Data <span class="badge bg-white text-dark ms-1">{{ data|length }}</span>
+                                </button>
+                                {% for c in centroids %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-filter-4b"
+                                    data-cluster="{{ c.cluster }}">
+                                    {% if c.label == 'Patuh' %}🟢{% elif c.label == 'Kurang Patuh' %}🟡{% elif c.label
+                                    == 'Tidak Patuh' %}🔴{% else %}🔵{% endif %}
+                                    Cluster {{ c.cluster }} {% if c.label %}({{ c.label }}){% endif %}
+                                    <span class="badge bg-secondary text-white ms-1">{{ data|selectattr('cluster',
+                                        'equalto', c.cluster)|list|length }}</span>
+                                </button>
+                                {% endfor %}
+                            </div>
+                            <div class="col-lg-5 col-md-12 d-flex gap-2 justify-content-lg-end">
+                                <input type="text" id="searchCalc4b" class="form-control form-control-sm"
+                                    style="max-width: 220px;" placeholder="🔍 Cari Wajib Pajak...">
+                                <select id="perPage4b" class="form-select form-select-sm" style="width: 130px;">
+                                    <option value="10">10 / halaman</option>
+                                    <option value="25" selected>25 / halaman</option>
+                                    <option value="50">50 / halaman</option>
+                                    <option value="all">Semua Data</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion" id="accordionPerhitungan4b">
+                        {% for d in data %}
+                        <div class="accordion-item item-4b" data-cluster="{{ d.cluster }}"
+                            data-nama="{{ d.nama|lower }}"
+                            style="border:1px solid #e2e8f0; border-radius:10px; margin-bottom:8px; overflow:hidden;">
+                            <h2 class="accordion-header" id="heading4b-{{ loop.index0 }}">
+                                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                                    type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapse4b-{{ loop.index0 }}"
+                                    aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                                    aria-controls="collapse4b-{{ loop.index0 }}"
+                                    style="font-size:13.5px; font-weight:700; background:#f8fafc;">
+                                    <span class="me-2">{{ loop.index }}.</span> {{ d.nama }}
+                                    <span class="ms-2">
+                                        {% if d.label == 'Patuh' %}<span class="badge-custom badge-patuh">Cluster {{
+                                            d.cluster }} &middot; {{ d.label }}</span>
+                                        {% elif d.label == 'Kurang Patuh' %}<span
+                                            class="badge-custom badge-kurang">Cluster {{ d.cluster }} &middot; {{
+                                            d.label }}</span>
+                                        {% elif d.label == 'Tidak Patuh' %}<span
+                                            class="badge-custom badge-tidak">Cluster {{ d.cluster }} &middot; {{ d.label
+                                            }}</span>
+                                        {% else %}<span class="badge-custom badge-cluster">Cluster {{ d.cluster
+                                            }}</span>{% endif %}
+                                    </span>
+                                </button>
+                            </h2>
+                            <div id="collapse4b-{{ loop.index0 }}"
+                                class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                                aria-labelledby="heading4b-{{ loop.index0 }}" data-bs-parent="#accordionPerhitungan4b">
+                                <div class="accordion-body" style="font-size:13px;">
+
+                                    <div class="mb-2">
+                                        <strong>1) Vektor data ternormalisasi</strong> untuk {{ d.nama }} (hasil dari
+                                        Tahap 1):<br>
+                                        <code>x = [ tepat={{ d.norm[0] }}, terlambat={{ d.norm[1] }}, belum={{ d.norm[2] }}, rata&sup2;_telat={{ d.norm[3] }} ]</code>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <strong>2) Hitung jarak Euclidean ke setiap centroid</strong>
+                                        (d = &radic;Σ(x&minus;c)&sup2;):
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="dist-table" style="font-size:12px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Centroid</th>
+                                                    <th>Vektor Centroid (c)</th>
+                                                    <th>Selisih (x &minus; c)</th>
+                                                    <th>Σ(x&minus;c)&sup2;</th>
+                                                    <th>Jarak = &radic;Σ(x&minus;c)&sup2;</th>
+                                                    <th>Terpilih?</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for j in d.jarak_centroid %}
+                                                <tr {% if j.cluster==d.cluster %}style="background:#eef2ff;" {% endif
+                                                    %}>
+                                                    <td style="text-align:left;">
+                                                        <strong>Cluster {{ j.cluster }}</strong>
+                                                        {% if j.label %}({{ j.label }}){% endif %}
+                                                    </td>
+                                                    <td>[{{ j.centroid_norm|join(', ') }}]</td>
+                                                    <td>[{{ j.selisih|join(', ') }}]</td>
+                                                    <td>{{ (j.jarak ** 2) | round(4) }}</td>
+                                                    <td><strong>{{ j.jarak }}</strong></td>
+                                                    <td>
+                                                        {% if j.cluster == d.cluster %}
+                                                        <span class="majority-tag tag-patuh" style="margin:0;">
+                                                            <i class="bi bi-check-circle-fill"></i> Terpilih (terkecil)
+                                                        </span>
+                                                        {% else %}&mdash;{% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="mt-2"
+                                        style="background:#eef2ff; border-radius:8px; padding:10px 14px; color:#4338ca;">
+                                        <strong>3) Kesimpulan:</strong> Karena jarak terkecil ada pada
+                                        <strong>Cluster {{ d.cluster }} ({{ d.label }})</strong>, maka
+                                        {{ d.nama }} dimasukkan ke klaster tersebut. Proses yang sama
+                                        (Langkah 1&ndash;3) dilakukan untuk seluruh {{ data|length }} wajib
+                                        pajak secara bersamaan dengan pembaruan centroid (Tahap 3), sampai
+                                        seluruh anggota klaster stabil (konvergen) dan terbentuklah
+                                        {{ centroids|length }} klaster akhir seperti pada tabel Tahap 4.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- PAGINATION TAHAP 4b -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top small text-muted"
+                        id="paginationWrapper4b">
+                        <div id="infoCount4b">Menampilkan 0 data</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="pagNav4b"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- TABEL UTAMA HASIL PENGELOMPOKAN -->
+            <div class="card-box mb-4" id="sectionTabelUtama">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">📋 Tabel Hasil Pengelompokan Wajib Pajak</h5>
+                        <div class="text-muted small">
+                            Filter dan tampilkan hasil pengelompokan per cluster atau seluruh {{ data|length }} data
+                            wajib pajak.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR TABEL UTAMA -->
+                <div class="p-3 mb-3 bg-light border rounded-3">
+                    <div class="row align-items-center g-2">
+                        <div class="col-lg-7 col-md-12 d-flex flex-wrap gap-2 align-items-center">
+                            <span class="fw-bold text-muted small me-1"><i class="bi bi-filter"></i> Pilihan
+                                Cluster:</span>
+                            <button type="button" class="btn btn-sm btn-primary active btn-filter-main"
+                                data-cluster="all">
+                                Semua Data <span class="badge bg-white text-dark ms-1">{{ data|length }}</span>
+                            </button>
+                            {% for c in centroids %}
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-filter-main"
+                                data-cluster="{{ c.cluster }}">
+                                {% if c.label == 'Patuh' %}🟢{% elif c.label == 'Kurang Patuh' %}🟡{% elif c.label ==
+                                'Tidak Patuh' %}🔴{% else %}🔵{% endif %}
+                                Cluster {{ c.cluster }} {% if c.label %}({{ c.label }}){% endif %}
+                                <span class="badge bg-primary text-white ms-1">{{ data|selectattr('cluster', 'equalto',
+                                    c.cluster)|list|length }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <div class="col-lg-5 col-md-12 d-flex gap-2 justify-content-lg-end">
+                            <input type="text" id="searchTableMain" class="form-control form-control-sm"
+                                style="max-width: 220px;" placeholder="🔍 Cari nama wajib pajak...">
+                            <select id="perPageMain" class="form-select form-select-sm" style="width: 140px;">
+                                <option value="10">10 / halaman</option>
+                                <option value="25" selected>25 / halaman</option>
+                                <option value="50">50 / halaman</option>
+                                <option value="100">100 / halaman</option>
+                                <option value="all">Semua Data</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 45px;">#</th>
+                                <th>Wajib pajak</th>
+                                <th>Tepat Waktu</th>
+                                <th>Terlambat</th>
+                                <th>Belum Bayar</th>
+                                <th>Cluster</th>
+                                <th>Perhitungan Jarak Centroid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in data %}
+                            <tr class="row-main-wp" data-cluster="{{ d.cluster }}" data-nama="{{ d.nama|lower }}">
+                                <td class="text-muted small row-num">{{ loop.index }}</td>
+                                <td>
+                                    <strong>{{ d.nama }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge-custom badge-tepat">
+                                        {{ (d.tepat * 100)|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-custom badge-telat">
+                                        {{ (d.telat * 100)|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-custom badge-belum">
+                                        {{ (d.belum * 100)|round(1) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if d.label == 'Patuh' %}
+                                    <span class="badge-custom badge-patuh">
+                                        Cluster {{ d.cluster }}
+                                    </span>
+                                    {% elif d.label == 'Kurang Patuh' %}
+                                    <span class="badge-custom badge-kurang">
+                                        Cluster {{ d.cluster }}
+                                    </span>
+                                    {% elif d.label == 'Tidak Patuh' %}
+                                    <span class="badge-custom badge-tidak">
+                                        Cluster {{ d.cluster }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge-custom badge-cluster">
+                                        Cluster {{ d.cluster }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if d.jarak_centroid %}
+                                    <div style="font-size:11px; line-height:1.6; min-width:230px;">
+                                        {% for j in d.jarak_centroid %}
+                                        <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1"
+                                            style="border-radius:6px; {% if j.cluster == d.cluster %}background:#eef2ff; font-weight:700; color:var(--primary-color);{% else %}color:#6b7280;{% endif %}">
+                                            <span>{{ j.label }}</span>
+                                            <span>
+                                                {{ j.jarak }}
+                                                {% if j.cluster == d.cluster %}<i
+                                                    class="bi bi-check-circle-fill ms-1"></i>{% endif %}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                        <div style="font-size:10px; color:#9ca3af; margin-top:2px;">
+                                            √[({{ d.norm[0] }}&minus;c<sub>0</sub>)²+({{ d.norm[1]
+                                            }}&minus;c<sub>1</sub>)²+({{ d.norm[2] }}&minus;c<sub>2</sub>)²+({{
+                                            d.norm[3] }}&minus;c<sub>3</sub>)²] &rarr; dipilih jarak terkecil
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINATION TABEL UTAMA -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top small text-muted"
+                    id="paginationWrapperMain">
+                    <div id="infoCountMain">Menampilkan 0 data</div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagNavMain"></ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- INSIGHT CLUSTER -->
+            <div class="mt-5">
+
+                <div class="title">
+                    📊 Insight Hasil Pengelompokan
+                </div>
+
+                <div class="subtitle">
+                    Interpretasi otomatis berdasarkan pola data pada masing-masing cluster.
+                </div>
+
+                <div class="row">
+
+                    {% for i in insight %}
+
+                    <div class="col-lg-4 mb-4">
+
+                        <div class="card-box h-100">
+
+                            <h4 class="mb-3">
+                                {% if i.label == 'Patuh' %}🟢{% elif i.label == 'Kurang Patuh' %}🟡{% elif
+                                i.label
+                                == 'Tidak Patuh' %}🔴{% else %}🔵{% endif %} Cluster {{ i.cluster }}
+                            </h4>
+
+                            <div class="mb-3">
+
+                                <div class="mb-2">
+                                    <strong>Rata-rata Tepat Waktu:</strong>
+                                    {{ (i.avg_tepat * 100)|round(1) }}%
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>Rata-rata Terlambat:</strong>
+                                    {{ (i.avg_telat * 100)|round(1) }}%
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>Rata-rata Belum Bayar:</strong>
+                                    {{ (i.avg_belum * 100)|round(1) }}%
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <h6 class="mb-3">
+                                Karakteristik Cluster:
+                            </h6>
+
+                            <ul>
+
+                                {% for k in i.karakter %}
+                                <li>{{ k }}</li>
+                                {% endfor %}
+
+                            </ul>
+
+                            <hr>
+
+                            <h6>
+                                Interpretasi:
+                            </h6>
+
+                            <p style="color:#6b7280;">
+                                {{ i.interpretasi }}
+                            </p>
+
+                            <hr>
+
+                            <h6 class="mb-3">
+                                🔗 Kesamaan Antar Anggota:
+                            </h6>
+
+                            <p
+                                style="color:#374151; background:#f8fafc; border-left:3px solid var(--primary-color); padding:10px 14px; border-radius:8px; font-size:13.5px;">
+                                Seluruh <strong>{{ i.jumlah }} wajib pajak</strong> pada Cluster {{ i.cluster }} berada
+                                dalam kelompok yang sama karena centroid-nya berdekatan dalam ruang fitur
+                                ternormalisasi.
+                                Kesamaan pola yang mereka miliki:
+                                {% if i.karakter %}
+                                {% for k in i.karakter %}{{ k }}{% if not loop.last %}; {% endif %}{% endfor %}.
+                                {% else %}
+                                pola pembayaran yang relatif seragam pada keempat fitur (tepat waktu, terlambat,
+                                belum bayar, rata-rata hari keterlambatan).
+                                {% endif %}
+                                Jarak Euclidean anggota-anggota ini ke centroid Cluster {{ i.cluster }} adalah yang
+                                paling kecil dibanding jarak ke centroid cluster lain &mdash; itulah sebabnya mereka
+                                dikelompokkan bersama.
+                            </p>
+
+                            <hr>
+
+                            <h6 class="mb-3">
+                                Contoh Data:
+                            </h6>
+
+                            <div class="table-responsive">
+
+                                <table class="table table-sm table-bordered">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Wajib Pajak</th>
+                                            <th>Tepat</th>
+                                            <th>Terlambat</th>
+                                            <th>Belum</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        {% for c in i.contoh %}
+                                        <tr>
+                                            <td>{{ c.nama }}</td>
+                                            <td>{{ c.tepat }}</td>
+                                            <td>{{ c.telat }}</td>
+                                            <td>{{ c.belum }}</td>
+                                        </tr>
+                                        {% endfor %}
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- EVALUASI PURITY SECTION -->
+        <!-- ========================================== -->
+        <div class="mt-5 pt-4 border-top">
+            <div class="title" style="font-size: 22px; font-weight: 700;">📐 Evaluasi Purity</div>
+            <div class="subtitle" style="font-size: 13px; margin-bottom: 20px;">
+                Mengukur seberapa baik hasil clustering K-Means sesuai dengan kelas aktual (ground truth).
+                Purity menghitung proporsi data yang berada di cluster yang benar berdasarkan kelas mayoritas.
+            </div>
+
+            {% if purity and purity.N and purity.N > 0 %}
+
+            <!-- LANGKAH 1: VISUALISASI CLUSTER -->
+            <div class="card-box mb-4 animate-in"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px;">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div>
+                        <div class="step-title">Visualisasi Anggota Cluster</div>
+                        <div class="step-desc">Setiap titik mewakili satu wajib pajak, diberi warna sesuai kelas
+                            aktual (ground truth).</div>
+                    </div>
+                </div>
+
+                <div id="cluster-viz" class="cluster-grid"></div>
+
+                <div class="legend-bar">
+                    <span><span class="legend-dot" style="background: var(--patuh);"></span> Patuh</span>
+                    <span><span class="legend-dot" style="background: var(--kurang);"></span> Kurang
+                        Patuh</span>
+                    <span><span class="legend-dot" style="background: var(--tidak);"></span> Tidak Patuh</span>
+                </div>
+            </div>
+
+            <!-- LANGKAH 2: DISTRIBUSI KELAS PER CLUSTER -->
+            <div class="card-box mb-4 animate-in"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px;">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div>
+                        <div class="step-title">Distribusi Kelas Aktual (Pre-Cluster) per Cluster</div>
+                        <div class="step-desc">Hitung jumlah anggota tiap kelas aktual (pre-cluster ground truth) pada
+                            setiap cluster, lalu
+                            tentukan kelas mayoritas (max<sub>j</sub> |ω<sub>k</sub> ∩ c<sub>j</sub>|) dan data
+                            non-mayoritas.</div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="dist-table" id="dist-table">
+                        <thead>
+                            <tr>
+                                <th>Cluster</th>
+                                <th>Patuh (Pre-Cluster)</th>
+                                <th>Kurang Patuh (Pre-Cluster)</th>
+                                <th>Tidak Patuh (Pre-Cluster)</th>
+                                <th>Total Data</th>
+                                <th>Kelas Mayoritas Pre-Cluster</th>
+                                <th>Data Mayoritas</th>
+                                <th>Data Non-Mayoritas</th>
+                                <th>Purity Cluster (Homogenitas)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dist-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LANGKAH 3: PERHITUNGAN DETAIL -->
+            <div class="card-box mb-4 animate-in"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px;">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div>
+                        <div class="step-title">Langkah Perhitungan Purity</div>
+                        <div class="step-desc">Substitusi nilai ke dalam rumus purity(Ω, C) = (1/N) × Σ
+                            max<sub>j</sub> |ω<sub>k</sub> ∩ c<sub>j</sub>|</div>
+                    </div>
+                </div>
+
+                <div class="formula-card">
+                    <div class="formula-eq">
+                        purity(Ω, C) = (1 / N) × Σ max<sub>j</sub> |ω<sub>k</sub> ∩ c<sub>j</sub>|
+                    </div>
+                    <div class="formula-steps" id="formula-steps"></div>
+                </div>
+            </div>
+
+            <!-- LANGKAH 4: HASIL AKHIR -->
+            <div class="animate-in mb-4">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div>
+                        <div class="step-title">Hasil Evaluasi Purity</div>
+                        <div class="step-desc">Nilai akhir purity dan interpretasinya.</div>
+                    </div>
+                </div>
+
+                <div class="result-box" id="result-box">
+                    <div class="result-label">Nilai Purity</div>
+                    <div class="result-value" id="result-value">{{ purity.nilai }}</div>
+                    <div class="result-percent" id="result-percent">({{ (purity.nilai * 100)|round(2) }}% data sesuai
+                        kelas aktual)</div>
+                    <div class="purity-progress-wrap">
+                        <div class="purity-progress-bg">
+                            <div class="purity-progress-fill" id="purity-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="result-interp" id="result-interp">{{ purity.interpretasi }}</div>
+                </div>
+            </div>
+
+            <!-- LANGKAH 5: PERBANDINGAN PER CLUSTER -->
+            <div class="card-box mb-4 animate-in"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px;">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div>
+                        <div class="step-title">Perbandingan Data Mayoritas Pre-Cluster & Purity per Cluster</div>
+                        <div class="step-desc">
+                            Purity per cluster dihitung terpisah:
+                            <code>purity<sub>k</sub> = jumlah kelas mayoritas / jumlah anggota cluster k</code>.
+                            Berikut adalah perbandingan visual komposisi data pre-cluster (aktual) dan tingkat
+                            homogenitas antar cluster.
+                            Ambang homogenitas: <strong>&ge; 0.80 = Homogen</strong>, <strong>0.60&ndash;0.79 = Cukup
+                                Homogen</strong>,
+                            <strong>&lt; 0.60 = Kurang Homogen</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kartu Perbandingan Proporsi Pre-Cluster per Cluster -->
+                <div id="purity-cluster-cards" class="row g-3 mb-4"></div>
+
+                <!-- Tabel Ranking Homogenitas -->
+                <div id="homogenitas-ranking"></div>
+            </div>
+
+            <!-- LANGKAH 6: TABEL DETAIL DATA PER BARIS (PURITY PER WAJIB PAJAK) -->
+            <div class="card-box mb-4 animate-in"
+                style="background: #ffffff; border: 1px solid #e2e8f0; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <div class="step-header">
+                    <div class="step-number">6</div>
+                    <div>
+                        <div class="step-title">Tabel Detail Data per Baris (Pre-Cluster vs Hasil Cluster)</div>
+                        <div class="step-desc">
+                            Rincian per baris data Wajib Pajak: membandingkan <strong>Kelas Aktual (Pre-Cluster Ground
+                                Truth)</strong> dengan <strong>Kelas Mayoritas Cluster</strong> tempat data tersebut
+                            teralokasi, serta status kesesuaian purity (Sesuai Mayoritas vs Non-Mayoritas).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="row g-2 mb-3 align-items-center">
+                    <div class="col-md-3">
+                        <input type="text" id="purity-search-input" class="form-control form-control-sm"
+                            placeholder="🔍 Cari / Nama...">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="purity-filter-cluster" class="form-select form-select-sm">
+                            <option value="">Semua Cluster</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="purity-filter-status" class="form-select form-select-sm">
+                            <option value="">Semua Status Kesesuaian</option>
+                            <option value="match">✅ Sesuai Mayoritas (Match)</option>
+                            <option value="mismatch">⚠️ Non-Mayoritas (Noise)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="purity-filter-kelas" class="form-select form-select-sm">
+                            <option value="">Semua Kelas Pre-Cluster</option>
+                            <option value="Patuh">Patuh</option>
+                            <option value="Kurang Patuh">Kurang Patuh</option>
+                            <option value="Tidak Patuh">Tidak Patuh</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Counter Summary Badge -->
+                <div id="purity-row-counter" class="mb-2 text-muted small"></div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-bordered align-middle" style="font-size: 13px;">
+                        <thead style="background: #eef2ff;">
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Nama Wajib Pajak</th>
+                                <th>Cluster K-Means</th>
+                                <th>Kelas Mayoritas Cluster</th>
+                                <th>Kelas Aktual (Pre-Cluster)</th>
+                                <th>Status Kesesuaian Purity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purity-row-body">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Memuat rincian data per baris...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted small" id="purity-page-info"></div>
+                    <ul class="pagination pagination-sm mb-0" id="purity-pagination"></ul>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="alert alert-warning border-0 animate-in"
+                style="border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #92400e;">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Belum ada data evaluasi purity yang
+                tersedia.
+                Silakan unggah data pembayaran pajak terlebih dahulu.
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    </div>
+
+    <!-- Chart.js Scripts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const hasData = {{ (data | length > 0) | tojson }};
+
+        // --- 1. DATA PREPARATION & SCATTER CHART (K-Means) ---
+        let elbowLabels = [];
+        let elbowInertiaData = [];
+        let silhouetteScoreVal = 0;
+
+        try {
+            if (hasData) {
+                const rawKmeansData = {{ data | tojson }};
+        const rawCentroids = {{ centroids | tojson if centroids is defined else[] }};
+        const rawElbowInertia = {{ inertia | tojson }};
+        const rawElbowKRange = {{ k_range | tojson }};
+        silhouetteScoreVal = {{ silhouette | tojson }};
+
+        elbowLabels = rawElbowKRange.map(k => 'K = ' + k);
+        elbowInertiaData = rawElbowInertia;
+
+        // Dynamic scatter plot update logic
+        let kmeansChartInstance = null;
+
+        function updateKmeansChart() {
+            const xSelect = document.getElementById('xAxisSelect');
+            const ySelect = document.getElementById('yAxisSelect');
+            const canvas = document.getElementById('kmeansChart');
+            if (!xSelect || !ySelect || !canvas) return;
+
+            const xKey = xSelect.value;
+            const yKey = ySelect.value;
+
+            const axisLabels = {
+                tepat: 'Tepat Waktu (%)',
+                telat: 'Terlambat (%)',
+                belum: 'Belum Bayar (%)',
+                avg_telat: 'Rata-rata Keterlambatan (Hari)'
+            };
+
+            const isPct = (key) => key !== 'avg_telat';
+
+            // Group points by cluster
+            const groups = {};
+            rawKmeansData.forEach(item => {
+                const cluster = item.cluster;
+                if (!groups[cluster]) {
+                    groups[cluster] = {
+                        points: [],
+                        label: item.label
+                    };
+                }
+
+                let valX = item[xKey];
+                let valY = item[yKey];
+                if (isPct(xKey)) valX = Math.round(valX * 100 * 10) / 10;
+                if (isPct(yKey)) valY = Math.round(valY * 100 * 10) / 10;
+
+                groups[cluster].points.push({
+                    x: valX,
+                    y: valY,
+                    nama: item.nama,
+
+                    tepat: Math.round(item.tepat * 100 * 10) / 10,
+                    telat: Math.round(item.telat * 100 * 10) / 10,
+                    belum: Math.round(item.belum * 100 * 10) / 10,
+                    avg_telat: item.avg_telat,
+                    isCentroid: false
+                });
+            });
+
+            // Centroids
+            const centroidGroups = {};
+            rawCentroids.forEach(c => {
+                let valX = c[xKey];
+                let valY = c[yKey];
+                if (isPct(xKey)) valX = Math.round(valX * 100 * 10) / 10;
+                if (isPct(yKey)) valY = Math.round(valY * 100 * 10) / 10;
+
+                centroidGroups[c.cluster] = {
+                    x: valX,
+                    y: valY,
+                    label: c.label,
+                    tepat: Math.round(c.tepat * 100 * 10) / 10,
+                    telat: Math.round(c.telat * 100 * 10) / 10,
+                    belum: Math.round(c.belum * 100 * 10) / 10,
+                    avg_telat: c.avg_telat,
+                    isCentroid: true
+                };
+            });
+
+            const colors = {
+                'patuh': { bg: 'rgba(16, 185, 129, 0.75)', border: 'rgb(16, 185, 129)' },
+                'kurang patuh': { bg: 'rgba(245, 158, 11, 0.75)', border: 'rgb(245, 158, 11)' },
+                'tidak patuh': { bg: 'rgba(239, 68, 68, 0.75)', border: 'rgb(239, 68, 68)' }
+            };
+
+            const labelOrder = { 'patuh': 0, 'kurang patuh': 1, 'tidak patuh': 2 };
+            const sortedClusters = Object.keys(groups).sort((a, b) => {
+                const labelA = (groups[a].label || '').toLowerCase();
+                const labelB = (groups[b].label || '').toLowerCase();
+                return (labelOrder[labelA] ?? 9) - (labelOrder[labelB] ?? 9);
+            });
+
+            const datasets = [];
+            sortedClusters.forEach(cluster => {
+                const itemLabel = groups[cluster].label || '';
+                const style = colors[itemLabel.toLowerCase()] || { bg: 'rgba(79, 70, 229, 0.75)', border: 'rgb(79, 70, 229)' };
+
+                // WP points
+                datasets.push({
+                    label: `${itemLabel} (Klaster ${cluster})`,
+                    data: groups[cluster].points,
+                    backgroundColor: style.bg,
+                    borderColor: style.border,
+                    borderWidth: 1.5,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointStyle: 'circle'
+                });
+
+                // Centroid
+                const cent = centroidGroups[cluster];
+                if (cent) {
+                    datasets.push({
+                        label: `Centroid ${itemLabel}`,
+                        data: [{
+                            x: cent.x,
+                            y: cent.y,
+                            tepat: cent.tepat,
+                            telat: cent.telat,
+                            belum: cent.belum,
+                            avg_telat: cent.avg_telat,
+                            label: cent.label,
+                            isCentroid: true,
+                            cluster: cluster
+                        }],
+                        backgroundColor: '#ffffff',
+                        borderColor: style.border,
+                        borderWidth: 3.5,
+                        pointRadius: 12,
+                        pointHoverRadius: 14,
+                        pointStyle: 'triangle',
+                        showLine: false
+                    });
+                }
+            });
+
+            const xMin = isPct(xKey) ? -5 : undefined;
+            const xMax = isPct(xKey) ? 105 : undefined;
+            const yMin = isPct(yKey) ? -5 : undefined;
+            const yMax = isPct(yKey) ? 105 : undefined;
+
+            const xTicksConfig = isPct(xKey) ? { callback: value => value + '%' } : {};
+            const yTicksConfig = isPct(yKey) ? { callback: value => value + '%' } : {};
+
+            if (kmeansChartInstance) {
+                kmeansChartInstance.data.datasets = datasets;
+                kmeansChartInstance.options.scales.x.title.text = axisLabels[xKey];
+                kmeansChartInstance.options.scales.y.title.text = axisLabels[yKey];
+                kmeansChartInstance.options.scales.x.min = xMin;
+                kmeansChartInstance.options.scales.x.max = xMax;
+                kmeansChartInstance.options.scales.y.min = yMin;
+                kmeansChartInstance.options.scales.y.max = yMax;
+                kmeansChartInstance.options.scales.x.ticks = xTicksConfig;
+                kmeansChartInstance.options.scales.y.ticks = yTicksConfig;
+                kmeansChartInstance.update();
+            } else {
+                const ctxKmeans = canvas.getContext('2d');
+                kmeansChartInstance = new Chart(ctxKmeans, {
+                    type: 'scatter',
+                    data: { datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    font: { family: 'Inter', size: 10, weight: '500' },
+                                    filter: (item) => !item.text.includes('Centroid')
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const pt = context.raw;
+                                        if (pt.isCentroid) {
+                                            return [
+                                                `⭐ PUSAT KLASTER (CENTROID): ${pt.label.toUpperCase()}`,
+                                                `Rata-rata Tepat Waktu: ${pt.tepat}%`,
+                                                `Rata-rata Terlambat: ${pt.telat}%`,
+                                                `Rata-rata Belum Bayar: ${pt.belum}%`,
+                                                `Rata-rata Keterlambatan: ${pt.avg_telat} Hari`
+                                            ];
+                                        }
+                                        return [
+                                            `Wajib Pajak: ${pt.nama}`,
+
+                                            `Tepat Waktu: ${pt.tepat}%`,
+                                            `Terlambat: ${pt.telat}%`,
+                                            `Belum Bayar: ${pt.belum}%`,
+                                            `Rata-rata Keterlambatan: ${pt.avg_telat} Hari`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                min: xMin,
+                                max: xMax,
+                                title: {
+                                    display: true,
+                                    text: axisLabels[xKey],
+                                    font: { family: 'Inter', size: 11, weight: '600' }
+                                },
+                                ticks: xTicksConfig
+                            },
+                            y: {
+                                min: yMin,
+                                max: yMax,
+                                title: {
+                                    display: true,
+                                    text: axisLabels[yKey],
+                                    font: { family: 'Inter', size: 11, weight: '600' }
+                                },
+                                ticks: yTicksConfig
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update secondary visual legend text
+            const legendEl = document.getElementById('kmeansAxisLegend');
+            if (legendEl) {
+                legendEl.innerText =
+                    `Sumbu X: ${axisLabels[xKey]} | Sumbu Y: ${axisLabels[yKey]} (Segitiga putih mewakili Centroid/Pusat Klaster)`;
+            }
+        }
+
+        const xAxisSelectEl = document.getElementById('xAxisSelect');
+        const yAxisSelectEl = document.getElementById('yAxisSelect');
+        if (xAxisSelectEl) xAxisSelectEl.addEventListener('change', updateKmeansChart);
+        if (yAxisSelectEl) yAxisSelectEl.addEventListener('change', updateKmeansChart);
+
+        // Initial render
+        updateKmeansChart();
+                } else {
+            // Fallback polos state
+            const kmeansCanvas = document.getElementById('kmeansChart');
+            if (kmeansCanvas) {
+                new Chart(kmeansCanvas.getContext('2d'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Belum Ada Data',
+                            data: [],
+                            backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                            borderColor: 'rgb(156, 163, 175)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { min: 0, max: 100 },
+                            y: { min: 0, max: 100 }
+                        }
+                    }
+                });
+            }
+
+            elbowLabels = ['K = 2', 'K = 3', 'K = 4', 'K = 5'];
+            elbowInertiaData = [0, 0, 0, 0];
+            silhouetteScoreVal = 0;
+        }
+            } catch (err) {
+            console.error('Gagal membangun grafik scatter cluster:', err);
+        }
+
+        // --- 2. ELBOW METHOD CHART ---
+        try {
+            const elbowCanvas = document.getElementById('elbowChart');
+            if (elbowCanvas) {
+                const ctxElbow = elbowCanvas.getContext('2d');
+                new Chart(ctxElbow, {
+                    type: 'line',
+                    data: {
+                        labels: elbowLabels,
+                        datasets: [{
+                            label: 'Inertia',
+                            data: elbowInertiaData,
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2.5,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                title: {
+                                    display: true,
+                                    text: 'Jumlah Klaster (K)',
+                                    font: { family: 'Inter', size: 11, weight: '600' }
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Inersia / WCSS',
+                                    font: { family: 'Inter', size: 11, weight: '600' }
+                                },
+                                beginAtZero: true,
+                                max: hasData ? undefined : 100
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Gagal membangun grafik elbow:', err);
+        }
+
+        // --- 3. SILHOUETTE SCORE GAUGE ---
+        try {
+            const silhouetteCanvas = document.getElementById('silhouetteChart');
+            if (silhouetteCanvas) {
+                const ctxSilhouette = silhouetteCanvas.getContext('2d');
+                const gaugeValue = Math.max(0, silhouetteScoreVal);
+
+                new Chart(ctxSilhouette, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [gaugeValue, 1 - gaugeValue],
+                            backgroundColor: [
+                                hasData ? 'rgb(79, 70, 229)' : 'rgba(156, 163, 175, 0.2)',
+                                'rgba(0, 0, 0, 0.05)'
+                            ],
+                            borderWidth: 0,
+                            weight: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '80%',
+                        circumference: 180,
+                        rotation: 270,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Gagal membangun grafik silhouette:', err);
+        }
+
+        // --- 4. PURITY EVALUATION DETAIL ---
+        // Dibungkus try/catch TERSENDIRI supaya kegagalan pada grafik lain
+        // (scatter/elbow/silhouette) TIDAK menghentikan render hasil Purity.
+        try {
+            const hasPurity = {{ (purity is not none and purity.N > 0) | tojson if purity is defined else 'false'
+        }};
+        if (hasPurity) {
+            const rawData = {{ data | tojson
+        }};
+        const purityData = {{ purity | tojson }};
+
+        const CLASS_INFO = {
+            'Patuh': { cls: 'patuh', label: 'Patuh', short: 'P', color: '#10b981' },
+            'Kurang Patuh': { cls: 'kurang', label: 'Kurang Patuh', short: 'K', color: '#f59e0b' },
+            'Tidak Patuh': { cls: 'tidak', label: 'Tidak Patuh', short: 'T', color: '#ef4444' }
+        };
+
+        // Spiral layout for better distribution of scatter points
+        function scatterPoints(n, r) {
+            const pts = [];
+            if (n === 0) return pts;
+            if (n === 1) return [{ x: 0, y: 0 }];
+
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            for (let i = 0; i < n; i++) {
+                const radius = r * 0.3 * Math.sqrt((i + 0.5) / n) + r * 0.05;
+                const angle = i * goldenAngle;
+                pts.push({
+                    x: Math.cos(angle) * radius,
+                    y: Math.sin(angle) * radius
+                });
+            }
+            return pts;
+        }
+
+        // Helper: level homogenitas berdasarkan purity per cluster
+        function homogenityInfo(purityK) {
+            if (purityK >= 0.80) return { label: 'Homogen', cls: 'homog-tinggi', color: '#10b981' };
+            if (purityK >= 0.60) return { label: 'Cukup Homogen', cls: 'homog-sedang', color: '#f59e0b' };
+            return { label: 'Kurang Homogen', cls: 'homog-rendah', color: '#ef4444' };
+        }
+
+        function buildClusterCard(clusterId, members, detail) {
+            const n = members.length;
+            const radius = Math.max(70, Math.min(120, 45 + n * 5));
+            const size = radius * 2 + 50;
+            const cx = size / 2, cy = size / 2;
+            const positions = scatterPoints(n, radius - 10);
+
+            let svg = `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+            // Background circle
+            svg += `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+
+            members.forEach((m, i) => {
+                const info = CLASS_INFO[m.kelas_aktual] || { cls: 'kurang', short: '?', color: '#9ca3af' };
+                const p = positions[i] || { x: 0, y: 0 };
+                // Draw colored circle behind the letter
+                svg += `<circle cx="${cx + p.x}" cy="${cy + p.y}" r="8" fill="${info.color}" opacity="0.15"/>`;
+                svg += `<text class="pt pt-${info.cls}" x="${cx + p.x}" y="${cy + p.y}" text-anchor="middle" dominant-baseline="central">${info.short}</text>`;
+            });
+
+            svg += `</svg>`;
+
+            const majInfo = CLASS_INFO[detail.kelas_mayoritas] || { cls: 'kurang', label: detail.kelas_mayoritas };
+            const purityK = detail.jumlah_anggota > 0 ? detail.jumlah_mayoritas / detail.jumlah_anggota : 0;
+            const homInfo = homogenityInfo(purityK);
+
+            // Build distribution mini-list
+            const dist = detail.distribusi_kelas || {};
+            let distHtml = '<div style="margin-top:12px; font-size:12px; text-align:left; display:inline-block;">';
+            ['Patuh', 'Kurang Patuh', 'Tidak Patuh'].forEach(k => {
+                const count = dist[k] || 0;
+                if (count > 0) {
+                    const ci = CLASS_INFO[k];
+                    const isMax = k === detail.kelas_mayoritas;
+                    distHtml += `<div style="margin: 2px 0; ${isMax ? 'font-weight:700;' : ''}">
+                                        <span class="legend-dot" style="background:${ci.color}; width:8px; height:8px;"></span>
+                                        ${ci.label}: <strong>${count}</strong>${isMax ? ' ★' : ''}
+                                    </div>`;
+                }
+            });
+            distHtml += '</div>';
+
+            return `
+                            <div class="cluster-card">
+                                <div class="cluster-card-title">Cluster ${clusterId}</div>
+                                <div class="cluster-card-sub">${n} Wajib Pajak</div>
+                                ${svg}
+                                ${distHtml}
+                                <div class="majority-tag tag-${majInfo.cls}">
+                                    <i class="bi bi-award-fill" style="margin-right:4px;"></i>
+                                    Mayoritas: ${majInfo.label} (${detail.jumlah_mayoritas})
+                                </div>
+                                <div style="margin-top:8px; font-size:12px; font-weight:700; color:${homInfo.color};">
+                                    <i class="bi bi-shield-check" style="margin-right:4px;"></i>
+                                    ${homInfo.label} &mdash; purity<sub>k</sub> = ${purityK.toFixed(2)}
+                                </div>
+                            </div>`;
+        }
+
+        // Render clusters
+        const clusterContainer = document.getElementById('cluster-viz');
+        if (clusterContainer) {
+            let clusterHtml = '';
+            (purityData.detail_cluster || []).forEach(detail => {
+                const members = rawData.filter(d => d.cluster === detail.cluster);
+                clusterHtml += buildClusterCard(detail.cluster, members, detail);
+            });
+            clusterContainer.innerHTML = clusterHtml;
+        }
+
+        // Render Distribusi Table
+        const distBody = document.getElementById('dist-body');
+        const homogenityRanking = [];
+        if (distBody) {
+            let distHtml = '';
+            let totalMajority = 0;
+
+            (purityData.detail_cluster || []).forEach(detail => {
+                const dist = detail.distribusi_kelas || {};
+                const patuh = dist['Patuh'] || 0;
+                const kurang = dist['Kurang Patuh'] || 0;
+                const tidak = dist['Tidak Patuh'] || 0;
+                const total = detail.jumlah_anggota;
+                const majLabel = detail.kelas_mayoritas;
+                const majCount = detail.jumlah_mayoritas;
+                const majInfo = CLASS_INFO[majLabel] || { cls: 'kurang', label: majLabel, color: '#f59e0b' };
+                const nonMajCount = total - majCount;
+                const majPct = total > 0 ? (majCount / total * 100).toFixed(1) : '0.0';
+                const nonMajPct = total > 0 ? (nonMajCount / total * 100).toFixed(1) : '0.0';
+                totalMajority += majCount;
+
+                const maxCls = majInfo.cls;
+                const purityK = total > 0 ? majCount / total : 0;
+                const homInfo = homogenityInfo(purityK);
+                homogenityRanking.push({
+                    cluster: detail.cluster,
+                    purityK,
+                    homInfo,
+                    majInfo,
+                    total,
+                    patuh,
+                    kurang,
+                    tidak,
+                    majCount,
+                    majPct,
+                    nonMajCount,
+                    nonMajPct
+                });
+
+                distHtml += `<tr>
+                                    <td><strong>Cluster ${detail.cluster}</strong></td>
+                                    <td>${patuh === majCount && majLabel === 'Patuh' ? `<span class="max-cell max-patuh">${patuh}</span>` : patuh}</td>
+                                    <td>${kurang === majCount && majLabel === 'Kurang Patuh' ? `<span class="max-cell max-kurang">${kurang}</span>` : kurang}</td>
+                                    <td>${tidak === majCount && majLabel === 'Tidak Patuh' ? `<span class="max-cell max-tidak">${tidak}</span>` : tidak}</td>
+                                    <td><strong>${total}</strong></td>
+                                    <td><span class="majority-tag tag-${maxCls}" style="margin:0; font-size:11px;">★ ${majInfo.label}</span></td>
+                                    <td><strong>${majCount}</strong> <span style="font-size:11px; color:#475569;">(${majPct}%)</span></td>
+                                    <td><span class="${nonMajCount > 0 ? 'text-danger' : 'text-success'}" style="font-weight:600;">${nonMajCount}</span> <span style="font-size:11px; color:#64748b;">(${nonMajPct}%)</span></td>
+                                    <td>
+                                        <span style="font-weight:700; color:${homInfo.color};">${purityK.toFixed(2)}</span>
+                                        <span style="font-size:11px; color:${homInfo.color}; display:block;">${homInfo.label}</span>
+                                    </td>
+                                </tr>`;
+            });
+
+            // Summary row
+            distHtml += `<tr style="background:#eef2ff; font-weight:700;">
+                                <td colspan="6" style="text-align:right;">Total Data Mayoritas (Σ max<sub>j</sub> |ω<sub>k</sub> ∩ c<sub>j</sub>|) =</td>
+                                <td><span style="color:var(--primary-color); font-size:16px;">${totalMajority}</span></td>
+                                <td><span style="color:#64748b;">${purityData.N - totalMajority}</span></td>
+                                <td><span style="color:var(--primary-color); font-size:15px;">${purityData.nilai} (${(purityData.nilai * 100).toFixed(1)}%)</span></td>
+                            </tr>`;
+
+            distBody.innerHTML = distHtml;
+        }
+
+        // Render Cards Perbandingan Data Mayoritas Pre-Cluster (Langkah 5 - Part A)
+        const clusterCardsContainer = document.getElementById('purity-cluster-cards');
+        if (clusterCardsContainer && homogenityRanking.length > 0) {
+            let cardsHtml = '';
+            homogenityRanking.forEach(r => {
+                const patuhPct = r.total > 0 ? (r.patuh / r.total * 100).toFixed(1) : 0;
+                const kurangPct = r.total > 0 ? (r.kurang / r.total * 100).toFixed(1) : 0;
+                const tidakPct = r.total > 0 ? (r.tidak / r.total * 100).toFixed(1) : 0;
+
+                cardsHtml += `
+                            <div class="col-md-6 col-lg-4">
+                                <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.04); height:100%;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div style="font-weight:700; font-size:16px; color:#1e293b;">Cluster ${r.cluster}</div>
+                                        <span style="background:${r.homInfo.color}15; color:${r.homInfo.color}; border:1px solid ${r.homInfo.color}40; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px;">
+                                            ${r.homInfo.label}
+                                        </span>
+                                    </div>
+                                    <div style="font-size:12px; color:#64748b; margin-bottom:12px;">Total Anggota: <strong>${r.total} Wajib Pajak</strong></div>
+
+                                    <!-- Class Mayoritas Pre-Cluster Box -->
+                                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; margin-bottom:12px;">
+                                        <div style="font-size:11px; color:#64748b; margin-bottom:4px;">Kelas Mayoritas (Pre-Cluster):</div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="majority-tag tag-${r.majInfo.cls}" style="margin:0; font-size:12px; font-weight:700;">★ ${r.majInfo.label}</span>
+                                            <span style="font-size:13px; font-weight:700; color:${r.majInfo.color};">${r.majCount} data (${r.majPct}%)</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pre-Cluster Distribution Progress Bar -->
+                                    <div style="margin-bottom:12px;">
+                                        <div class="d-flex justify-content-between" style="font-size:11px; color:#64748b; margin-bottom:4px;">
+                                            <span>Komposisi Data Pre-Cluster</span>
+                                            <span>Purity<sub>k</sub>: <strong style="color:${r.homInfo.color};">${r.purityK.toFixed(2)}</strong></span>
+                                        </div>
+                                        <div style="height:10px; border-radius:999px; background:#e2e8f0; overflow:hidden; display:flex;">
+                                            <div style="width:${patuhPct}%; background:#10b981;" title="Patuh: ${r.patuh} (${patuhPct}%)"></div>
+                                            <div style="width:${kurangPct}%; background:#f59e0b;" title="Kurang Patuh: ${r.kurang} (${kurangPct}%)"></div>
+                                            <div style="width:${tidakPct}%; background:#ef4444;" title="Tidak Patuh: ${r.tidak} (${tidakPct}%)"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1" style="font-size:10px; color:#64748b;">
+                                            <span style="color:#10b981;">● Patuh: ${r.patuh}</span>
+                                            <span style="color:#d97706;">● Kurang: ${r.kurang}</span>
+                                            <span style="color:#ef4444;">● Tidak: ${r.tidak}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Non-Majority Noise Info -->
+                                    <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px dashed #cbd5e1; font-size:11px;">
+                                        <span style="color:#64748b;">Data Non-Mayoritas (Noise):</span>
+                                        <span class="${r.nonMajCount > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'}">${r.nonMajCount} data (${r.nonMajPct}%)</span>
+                                    </div>
+                                </div>
+                            </div>`;
+            });
+            clusterCardsContainer.innerHTML = cardsHtml;
+        }
+
+        // Render Ranking & Comparative Analysis Table (Langkah 5 - Part B)
+        const homogenRankContainer = document.getElementById('homogenitas-ranking');
+        if (homogenRankContainer && homogenityRanking.length > 0) {
+            const sorted = [...homogenityRanking].sort((a, b) => b.purityK - a.purityK);
+            let rankHtml = '<div class="table-responsive"><table class="table table-sm table-bordered align-middle" style="font-size:13px;"><thead style="background:#eef2ff;"><tr>'
+                + '<th>Peringkat</th><th>Cluster</th><th>Total Data</th><th>Kelas Mayoritas Pre-Cluster</th><th>Data Mayoritas</th><th>Non-Mayoritas</th><th>Proporsi Pre-Cluster</th><th>Purity Cluster</th><th>Status Homogenitas</th></tr></thead><tbody>';
+
+            sorted.forEach((r, idx) => {
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '';
+                const patuhPct = r.total > 0 ? (r.patuh / r.total * 100).toFixed(1) : 0;
+                const kurangPct = r.total > 0 ? (r.kurang / r.total * 100).toFixed(1) : 0;
+                const tidakPct = r.total > 0 ? (r.tidak / r.total * 100).toFixed(1) : 0;
+
+                const barHtml = `<div style="height:10px; width:120px; border-radius:999px; background:#e2e8f0; overflow:hidden; display:flex;">
+                                    <div style="width:${patuhPct}%; background:#10b981;" title="Patuh: ${r.patuh} (${patuhPct}%)"></div>
+                                    <div style="width:${kurangPct}%; background:#f59e0b;" title="Kurang Patuh: ${r.kurang} (${kurangPct}%)"></div>
+                                    <div style="width:${tidakPct}%; background:#ef4444;" title="Tidak Patuh: ${r.tidak} (${tidakPct}%)"></div>
+                                </div>`;
+
+                rankHtml += `<tr>
+                                    <td>${medal} #${idx + 1}</td>
+                                    <td><strong>Cluster ${r.cluster}</strong></td>
+                                    <td>${r.total}</td>
+                                    <td><span class="majority-tag tag-${r.majInfo.cls}" style="margin:0; font-size:11px;">★ ${r.majInfo.label}</span></td>
+                                    <td><strong>${r.majCount}</strong> <span style="font-size:11px; color:#64748b;">(${r.majPct}%)</span></td>
+                                    <td><span class="${r.nonMajCount > 0 ? 'text-danger fw-bold' : 'text-success'}">${r.nonMajCount}</span> <span style="font-size:11px; color:#64748b;">(${r.nonMajPct}%)</span></td>
+                                    <td>${barHtml}</td>
+                                    <td><strong style="color:${r.homInfo.color};">${r.purityK.toFixed(2)}</strong> (${(r.purityK * 100).toFixed(1)}%)</td>
+                                    <td><span style="font-weight:700; color:${r.homInfo.color};">${r.homInfo.label}</span></td>
+                                </tr>`;
+            });
+            rankHtml += '</tbody></table></div>';
+
+            const best = sorted[0];
+            const worst = sorted[sorted.length - 1];
+            rankHtml += `<div class="alert alert-light border mt-3" style="font-size:13px; background:#fff; border-radius:10px;">
+                                <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">
+                                    <i class="bi bi-lightbulb-fill me-1" style="color:#f59e0b;"></i>
+                                    Analisis Perbandingan Purity Data Mayoritas Pre-Cluster:
+                                </div>
+                                Cluster dengan homogenitas tertinggi adalah <strong>Cluster ${best.cluster}</strong> dengan kelas mayoritas pre-cluster <strong>${best.majInfo.label}</strong>
+                                (Purity<sub>k</sub> = ${best.purityK.toFixed(2)}, dominasi mayoritas ${best.majPct}%).`
+                + (sorted.length > 1
+                    ? ` Sebaliknya, <strong>Cluster ${worst.cluster}</strong> memiliki purity paling rendah
+                                (Purity<sub>k</sub> = ${worst.purityK.toFixed(2)}, dominasi mayoritas ${worst.majPct}%), menandakan data pre-cluster pada cluster ini lebih bercampur (terdapat ${worst.nonMajCount} data non-mayoritas atau ${worst.nonMajPct}%).`
+                    : '')
+                + `</div>`;
+
+            homogenRankContainer.innerHTML = rankHtml;
+        }
+
+        // Render Formula Steps
+        const formulaSteps = document.getElementById('formula-steps');
+        if (formulaSteps) {
+            const details = purityData.detail_cluster || [];
+            const N = purityData.N;
+            const maxValues = details.map(d => d.jumlah_mayoritas);
+
+            let stepsHtml = '';
+            stepsHtml += `<div class="formula-line" style="font-size:14px; color:var(--text-muted); margin-top:12px;">
+                                Untuk setiap cluster, ambil jumlah kelas mayoritas:
+                            </div>`;
+
+            details.forEach(d => {
+                const distEntries = Object.entries(d.distribusi_kelas || {});
+                stepsHtml += `<div class="formula-line" style="font-size:13px;">
+                                    Cluster ${d.cluster}: max(${distEntries.map(([k, v]) => `${v}<sub style="font-size:10px;">${CLASS_INFO[k]?.short || '?'}</sub>`).join(', ')}) = <strong>${d.jumlah_mayoritas}</strong>
+                                </div>`;
+            });
+
+            stepsHtml += `<div class="formula-arrow">↓</div>`;
+            stepsHtml += `<div class="formula-line">
+                                Σ max = ${maxValues.join(' + ')} = <strong>${purityData.total_majority}</strong>
+                            </div>`;
+            stepsHtml += `<div class="formula-arrow">↓</div>`;
+            stepsHtml += `<div class="formula-line">
+                                purity = ${purityData.total_majority} / ${N} = <strong style="color:var(--primary-color); font-size:20px;">${purityData.nilai}</strong>
+                            </div>`;
+
+            formulaSteps.innerHTML = stepsHtml;
+        }
+
+        // Render Final Result
+        const resultValue = document.getElementById('result-value');
+        const resultPercent = document.getElementById('result-percent');
+        const purityBar = document.getElementById('purity-bar');
+
+        if (resultValue && resultPercent && purityBar) {
+            resultValue.textContent = purityData.nilai;
+            resultPercent.textContent = `(${(purityData.nilai * 100).toFixed(2)}% data sesuai kelas aktual)`;
+
+            setTimeout(() => {
+                purityBar.style.width = (purityData.nilai * 100) + '%';
+            }, 600);
+        }
+
+        // --- RENDERING LANGKAH 6: TABEL DETAIL DATA PER BARIS ---
+        let purityRowData = [];
+        const clusterMajorityMap = {};
+        (purityData.detail_cluster || []).forEach(d => {
+            clusterMajorityMap[d.cluster] = d.kelas_mayoritas;
+        });
+
+        purityRowData = rawData.map((d, index) => {
+            const cid = d.cluster;
+            const majClass = clusterMajorityMap[cid] || '-';
+            const actualClass = d.kelas_aktual || '-';
+            const isMatch = (actualClass === majClass);
+            return {
+                idx: index + 1,
+                nama: d.nama || '-',
+                cluster: cid,
+                clusterLabel: d.label || `Cluster ${cid}`,
+                majClass: majClass,
+                actualClass: actualClass,
+                isMatch: isMatch
+            };
+        });
+
+        const clusterSelect = document.getElementById('purity-filter-cluster');
+        if (clusterSelect && clusterSelect.options.length <= 1) {
+            (purityData.detail_cluster || []).forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.cluster;
+                opt.textContent = `Cluster ${d.cluster} (Mayoritas: ${d.kelas_mayoritas})`;
+                clusterSelect.appendChild(opt);
+            });
+        }
+
+        let currentPurityPage = 1;
+        const purityRowsPerPage = 15;
+
+        function renderPurityRowTable() {
+            const searchQuery = (document.getElementById('purity-search-input')?.value || '').toLowerCase().trim();
+            const filterCluster = document.getElementById('purity-filter-cluster')?.value || '';
+            const filterStatus = document.getElementById('purity-filter-status')?.value || '';
+            const filterKelas = document.getElementById('purity-filter-kelas')?.value || '';
+
+            const filtered = purityRowData.filter(item => {
+                if (filterCluster !== '' && String(item.cluster) !== filterCluster) return false;
+                if (filterStatus === 'match' && !item.isMatch) return false;
+                if (filterStatus === 'mismatch' && item.isMatch) return false;
+                if (filterKelas !== '' && item.actualClass !== filterKelas) return false;
+                if (searchQuery !== '') {
+                    const matchNama = item.nama.toLowerCase().includes(searchQuery);
+                    if (!matchNama) return false;
+                }
+                return true;
+            });
+
+            const counterEl = document.getElementById('purity-row-counter');
+            if (counterEl) {
+                const totalMatches = filtered.filter(i => i.isMatch).length;
+                const totalMismatches = filtered.length - totalMatches;
+                counterEl.innerHTML = `Menampilkan <strong>${filtered.length}</strong> dari ${purityRowData.length} data ` +
+                    `(<span class="text-success font-weight-bold">✅ ${totalMatches} Sesuai Mayoritas</span>, ` +
+                    `<span class="text-danger font-weight-bold">⚠️ ${totalMismatches} Non-Mayoritas</span>)`;
+            }
+
+            const totalPages = Math.ceil(filtered.length / purityRowsPerPage) || 1;
+            if (currentPurityPage > totalPages) currentPurityPage = totalPages;
+            if (currentPurityPage < 1) currentPurityPage = 1;
+
+            const startIdx = (currentPurityPage - 1) * purityRowsPerPage;
+            const pageItems = filtered.slice(startIdx, startIdx + purityRowsPerPage);
+
+            const tbody = document.getElementById('purity-row-body');
+            if (tbody) {
+                if (pageItems.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data Wajib Pajak yang sesuai dengan filter.</td></tr>`;
+                } else {
+                    let html = '';
+                    pageItems.forEach((item, i) => {
+                        const rowNum = startIdx + i + 1;
+                        const majInfo = CLASS_INFO[item.majClass] || { cls: 'kurang', label: item.majClass, color: '#f59e0b' };
+                        const actInfo = CLASS_INFO[item.actualClass] || { cls: 'kurang', label: item.actualClass, color: '#f59e0b' };
+
+                        const statusBadge = item.isMatch
+                            ? `<span class="badge" style="background:#10b98115; color:#10b981; border:1px solid #10b98140; font-size:11px; font-weight:700; padding:4px 8px;">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Sesuai Mayoritas
+                                           </span>`
+                            : `<span class="badge" style="background:#ef444415; color:#ef4444; border:1px solid #ef444440; font-size:11px; font-weight:700; padding:4px 8px;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Non-Mayoritas (Noise)
+                                           </span>`;
+
+                        html += `<tr style="${!item.isMatch ? 'background: rgba(254, 242, 242, 0.4);' : ''}">
+                                        <td class="text-center text-muted">${rowNum}</td>
+                                        <td><strong>${item.nama}</strong></td>
+                                        <td><span class="badge bg-light text-dark border">Cluster ${item.cluster}</span></td>
+                                        <td><span class="majority-tag tag-${majInfo.cls}" style="margin:0; font-size:11px;">★ ${majInfo.label}</span></td>
+                                        <td><span class="majority-tag tag-${actInfo.cls}" style="margin:0; font-size:11px;">${actInfo.label}</span></td>
+                                        <td>${statusBadge}</td>
+                                    </tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+            }
+
+            const pageInfoEl = document.getElementById('purity-page-info');
+            if (pageInfoEl) {
+                const endIdx = Math.min(startIdx + purityRowsPerPage, filtered.length);
+                pageInfoEl.textContent = filtered.length > 0
+                    ? `Menampilkan ${startIdx + 1} - ${endIdx} dari ${filtered.length} baris`
+                    : `0 data`;
+            }
+
+            const paginationEl = document.getElementById('purity-pagination');
+            if (paginationEl) {
+                let pagHtml = '';
+                pagHtml += `<li class="page-item ${currentPurityPage === 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPurityPage - 1}">«</a>
+                            </li>`;
+
+                for (let p = 1; p <= totalPages; p++) {
+                    if (p === 1 || p === totalPages || (p >= currentPurityPage - 2 && p <= currentPurityPage + 2)) {
+                        pagHtml += `<li class="page-item ${p === currentPurityPage ? 'active' : ''}">
+                                        <a class="page-link" href="#" data-page="${p}">${p}</a>
+                                    </li>`;
+                    } else if (p === currentPurityPage - 3 || p === currentPurityPage + 3) {
+                        pagHtml += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                }
+
+                pagHtml += `<li class="page-item ${currentPurityPage === totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${currentPurityPage + 1}">»</a>
+                            </li>`;
+
+                paginationEl.innerHTML = pagHtml;
+
+                paginationEl.querySelectorAll('a.page-link').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const pageNum = parseInt(this.getAttribute('data-page'));
+                        if (pageNum && pageNum !== currentPurityPage && pageNum >= 1 && pageNum <= totalPages) {
+                            currentPurityPage = pageNum;
+                            renderPurityRowTable();
+                        }
+                    });
+                });
+            }
+        }
+
+        ['purity-search-input', 'purity-filter-cluster', 'purity-filter-status', 'purity-filter-kelas'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => { currentPurityPage = 1; renderPurityRowTable(); });
+                el.addEventListener('change', () => { currentPurityPage = 1; renderPurityRowTable(); });
+            }
+        });
+
+        renderPurityRowTable();
+                }
+            } catch (err) {
+            console.error('Gagal menampilkan hasil Purity:', err);
+        }
+
+        // --- 5. CLUSTER FILTERING & PAGINATION (TAHAP 4b & TABEL UTAMA) ---
+        (function initClusterPagination() {
+            function setupPagination({
+                itemSelector,
+                btnSelector,
+                searchInputId,
+                perPageSelectId,
+                infoCountId,
+                pagNavId,
+                isTable = false
+            }) {
+                const items = Array.from(document.querySelectorAll(itemSelector));
+                if (!items.length) return;
+
+                let currentCluster = 'all';
+                let currentPage = 1;
+
+                function render() {
+                    const searchVal = (document.getElementById(searchInputId)?.value || '').toLowerCase().trim();
+                    const selectedPerPage = document.getElementById(perPageSelectId)?.value || '25';
+                    const perPage = selectedPerPage === 'all' ? items.length : parseInt(selectedPerPage, 10);
+
+                    // Filter items
+                    const filtered = items.filter(item => {
+                        const itemCluster = item.getAttribute('data-cluster');
+                        const itemNama = item.getAttribute('data-nama') || '';
+
+                        const matchCluster = (currentCluster === 'all' || itemCluster === String(currentCluster));
+                        const matchSearch = (!searchVal || itemNama.includes(searchVal));
+
+                        return matchCluster && matchSearch;
+                    });
+
+                    const totalFiltered = filtered.length;
+                    const totalPages = Math.max(1, Math.ceil(totalFiltered / Math.max(1, perPage)));
+
+                    if (currentPage > totalPages) currentPage = totalPages;
+
+                    const startIdx = (currentPage - 1) * perPage;
+                    const endIdx = selectedPerPage === 'all' ? totalFiltered : Math.min(startIdx + perPage, totalFiltered);
+
+                    // Hide all items first
+                    items.forEach(el => el.style.display = 'none');
+
+                    // Show items in page range
+                    filtered.slice(startIdx, endIdx).forEach((el, index) => {
+                        if (isTable) {
+                            el.style.display = 'table-row';
+                            const numCell = el.querySelector('.row-num');
+                            if (numCell) {
+                                numCell.textContent = startIdx + index + 1;
+                            }
+                        } else {
+                            el.style.display = 'block';
+                        }
+                    });
+
+                    // Update info count
+                    const infoEl = document.getElementById(infoCountId);
+                    if (infoEl) {
+                        if (totalFiltered === 0) {
+                            infoEl.innerHTML = `<span class="text-danger fw-semibold"><i class="bi bi-exclamation-circle me-1"></i>Tidak ada data yang cocok dengan filter.</span>`;
+                        } else if (selectedPerPage === 'all' || perPage >= totalFiltered) {
+                            infoEl.innerHTML = `Menampilkan <strong>${totalFiltered}</strong> dari <strong>${items.length}</strong> wajib pajak`;
+                        } else {
+                            infoEl.innerHTML = `Menampilkan <strong>${startIdx + 1}&ndash;${endIdx}</strong> dari <strong>${totalFiltered}</strong> data (Total: ${items.length} wajib pajak)`;
+                        }
+                    }
+
+                    // Render pagination links
+                    const navEl = document.getElementById(pagNavId);
+                    if (navEl) {
+                        if (totalPages <= 1) {
+                            navEl.innerHTML = '';
+                        } else {
+                            let navHtml = '';
+                            // Prev button
+                            navHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                    <button class="page-link" data-page="${currentPage - 1}" type="button">&laquo;</button>
+                                </li>`;
+
+                            const maxVisiblePages = 5;
+                            let startPage = Math.max(1, currentPage - 2);
+                            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                            if (endPage - startPage < maxVisiblePages - 1) {
+                                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                            }
+
+                            if (startPage > 1) {
+                                navHtml += `<li class="page-item"><button class="page-link" data-page="1" type="button">1</button></li>`;
+                                if (startPage > 2) navHtml += `<li class="page-item disabled"><span class="page-link">&hellip;</span></li>`;
+                            }
+
+                            for (let p = startPage; p <= endPage; p++) {
+                                navHtml += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+                                        <button class="page-link" data-page="${p}" type="button">${p}</button>
+                                    </li>`;
+                            }
+
+                            if (endPage < totalPages) {
+                                if (endPage < totalPages - 1) navHtml += `<li class="page-item disabled"><span class="page-link">&hellip;</span></li>`;
+                                navHtml += `<li class="page-item"><button class="page-link" data-page="${totalPages}" type="button">${totalPages}</button></li>`;
+                            }
+
+                            // Next button
+                            navHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                    <button class="page-link" data-page="${currentPage + 1}" type="button">&raquo;</button>
+                                </li>`;
+
+                            navEl.innerHTML = navHtml;
+
+                            // Event handlers for buttons
+                            navEl.querySelectorAll('button.page-link').forEach(btn => {
+                                btn.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const p = parseInt(btn.getAttribute('data-page'), 10);
+                                    if (p && p >= 1 && p <= totalPages) {
+                                        currentPage = p;
+                                        render();
+                                    }
+                                });
+                            });
+                        }
+                    }
+                }
+
+                // Filter buttons
+                document.querySelectorAll(btnSelector).forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll(btnSelector).forEach(b => {
+                            b.classList.remove('active', 'btn-primary');
+                            if (b.classList.contains('btn-filter-main')) {
+                                b.classList.add('btn-outline-primary');
+                            } else {
+                                b.classList.add('btn-outline-secondary');
+                            }
+                        });
+                        btn.classList.add('active', 'btn-primary');
+                        btn.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+
+                        currentCluster = btn.getAttribute('data-cluster');
+                        currentPage = 1;
+                        render();
+                    });
+                });
+
+                // Search input
+                const searchInput = document.getElementById(searchInputId);
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => {
+                        currentPage = 1;
+                        render();
+                    });
+                }
+
+                // Per page select
+                const perPageSelect = document.getElementById(perPageSelectId);
+                if (perPageSelect) {
+                    perPageSelect.addEventListener('change', () => {
+                        currentPage = 1;
+                        render();
+                    });
+                }
+
+                render();
+            }
+
+            // Initialize for Tahap 4b
+            setupPagination({
+                itemSelector: '.item-4b',
+                btnSelector: '.btn-filter-4b',
+                searchInputId: 'searchCalc4b',
+                perPageSelectId: 'perPage4b',
+                infoCountId: 'infoCount4b',
+                pagNavId: 'pagNav4b',
+                isTable: false
+            });
+
+            // Initialize for Main Table
+            setupPagination({
+                itemSelector: '.row-main-wp',
+                btnSelector: '.btn-filter-main',
+                searchInputId: 'searchTableMain',
+                perPageSelectId: 'perPageMain',
+                infoCountId: 'infoCountMain',
+                pagNavId: 'pagNavMain',
+                isTable: true
+            });
+        })();
+        });
+    </script>
+
+</body>
+
+</html>

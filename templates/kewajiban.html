@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Kewajiban Pajak</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --bg-color: #f3f4f6;
+            --text-dark: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            padding-top: 30px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 22px;
+        }
+
+        .sidebar-brand i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #9ca3af;
+            padding: 14px 20px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--sidebar-hover);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg,
+                    var(--primary-color),
+                    var(--primary-hover));
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+        }
+
+        /* CONTENT */
+        .content {
+            margin-left: 260px;
+            padding: 40px;
+        }
+
+        .card-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+        }
+
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: #eef2ff;
+        }
+
+        .table thead th {
+            border: none;
+            font-weight: 700;
+            color: #374151;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 14px;
+        }
+
+        .badge-custom {
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .badge-tepat {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .badge-telat {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .badge-belum {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <div class="sidebar-brand">
+            <i class="bi bi-hexagon-fill"></i>
+            <h4>Sistem Pajak</h4>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">
+                <i class="bi bi-grid-1x2-fill"></i>
+                Beranda
+            </a>
+
+            <a href="/data_input">
+                <i class="bi bi-file-earmark-arrow-up"></i>
+                Input Data
+            </a>
+
+            <a href="/preprocessing">
+                <i class="bi bi-funnel"></i>
+                Pembersihan Data
+            </a>
+
+            <a href="/generate-kewajiban" class="active">
+                <i class="bi bi-clipboard-check"></i>
+                Kewajiban Pajak
+            </a>
+
+            <a href="/agregasi">
+                <i class="bi bi-layers"></i>
+                Ringkasan Data
+            </a>
+
+            <a href="/kmeans">
+                <i class="bi bi-diagram-3"></i>
+                Pengelompokan Data
+            </a>
+        </div>
+
+        <div class="nav-links logout-btn">
+            <a href="/logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+        <div class="card-box">
+
+            <div class="title">
+                📌 Ringkasan Kewajiban Pajak
+            </div>
+
+            <div class="subtitle">
+                Informasi tingkat kepatuhan pembayaran pajak setiap wajib pajak.
+            </div>
+
+            <form method="GET" class="mb-4">
+                <input type="text" name="search" class="form-control search-box" placeholder="Cari berdasarkan NPWP..."
+                    value="{{ search }}">
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+
+                    <thead>
+                        <tr>
+                            <th>Wajib Pajak</th>
+                            <th>Tepat Waktu</th>
+                            <th>Terlambat</th>
+                            <th>Belum Bayar</th>
+                            <!--<th>Status Kepatuhan</th>--> 
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for d in ringkasan %}
+                        <tr>
+
+                            <td>
+                                <strong>{{ d.get('nama', '-') }}</strong><br>
+                            </td>
+
+                            <td>
+                                <span class="badge-custom badge-tepat">
+                                    {{ d.get('tepat', 0) }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge-custom badge-telat">
+                                    {{ d.get('terlambat', 0) }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge-custom badge-belum">
+                                    {{ d.get('belum', 0) }}
+                                </span>
+                            </td>
+
+                            <!--<td>
+                                {% set tepat = d.get('tepat', 0) %}
+                                {% set terlambat = d.get('terlambat', 0) %}
+                                {% set belum = d.get('belum', 0) %}
+
+                                {% if belum > tepat and belum > terlambat %}
+                                <span class="badge-custom badge-belum">
+                                    ❌ Tidak Patuh
+                                </span>
+
+                                {% elif terlambat > tepat %}
+                                <span class="badge-custom badge-telat">
+                                    ⚠️ Kurang Patuh
+                                </span>
+
+                                {% else %}
+                                <span class="badge-custom badge-tepat">
+                                    ✅ Patuh
+                                </span>
+                                {% endif %}
+                            </td>-->
+
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Tidak ada data yang ditemukan.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+        <div class="card-box mt-4">
+            <div class="title">
+                📋 Detail Kewajiban Pajak
+            </div>
+
+            <div class="subtitle">
+                Rincian status pembayaran pajak per bulan.
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Wajib Pajak</th>
+                            <th>Jenis Pajak</th>
+                            <th>Masa Pajak</th>
+                            <th>Jatuh Tempo</th>
+                            <th>Tgl Bayar</th>
+                            <th>Status</th>
+                            <th>Selisih Hari</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in data %}
+                        <tr>
+                            <td>
+                                <strong>{{ d.get('nama', '-') }}</strong><br>
+                                <!--<small class="text-muted">{{ d.get('npwp', '-') }}</small>-->
+                            </td>
+                            <td>{{ d.get('jenis', '-') }}</td>
+                            <td>{{ d.get('bulan', '-') }} {{ d.get('tahun', '-') }}</td>
+                            <td>{{ d.get('jatuh_tempo', '-') }}</td>
+                            <td>{{ d.get('tgl_bayar', '-') }}</td>
+                            <td>
+                                {% if d.get('status') == 'Tepat Waktu' %}
+                                <span class="badge-custom badge-tepat">✅ {{ d.get('status') }}</span>
+                                {% elif d.get('status') == 'Terlambat' %}
+                                <span class="badge-custom badge-telat">⚠️ {{ d.get('status') }}</span>
+                                {% else %}
+                                <span class="badge-custom badge-belum">❌ {{ d.get('status') }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if d.get('selisih') is not none %}
+                                {{ d.get('selisih') }} Hari
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Tidak ada data detail yang ditemukan.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

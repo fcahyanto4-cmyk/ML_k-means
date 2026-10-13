@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beranda Sistem Pajak</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --bg-color: #f3f4f6;
+            --text-dark: #111827;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            padding-top: 30px;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sidebar-brand h4 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 22px;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-brand i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #9ca3af;
+            padding: 14px 20px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--sidebar-hover);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .sidebar a i {
+            font-size: 18px;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            margin-bottom: 30px;
+        }
+
+        /* CONTENT */
+        .content {
+            margin-left: 260px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .welcome-text {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, #111827, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-color);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        .user-profile img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* KARTU */
+        .card-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            margin-bottom: 30px;
+        }
+
+        .hero-card::before {
+            opacity: 1;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* INFO BOX */
+        .info-box {
+            transition: var(--transition);
+            cursor: pointer;
+            padding: 24px;
+        }
+
+        .info-box:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+        }
+
+        .info-box:hover::before {
+            opacity: 1;
+        }
+
+        .icon-wrapper {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .icon-blue {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .icon-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .icon-yellow {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .icon-purple {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+
+        .icon-pink {
+            background: rgba(236, 72, 153, 0.1);
+            color: #ec4899;
+        }
+
+        .info-box h5 {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* INFO SISTEM */
+        .system-info {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            margin-top: 30px;
+        }
+
+        .system-info h6 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .system-info i {
+            color: var(--primary-color);
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .tech-badge {
+            background: var(--bg-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ANIMASI */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.5s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-hexagon-fill"></i>
+            <h4>Sistem Pajak</h4>
+        </div>
+
+        <div class="nav-links">
+            <a href="/" class="active"><i class="bi bi-grid-1x2-fill"></i> Beranda</a>
+            <a href="/data_input"><i class="bi bi-file-earmark-arrow-up"></i> Masukkan Data</a>
+            <a href="/preprocessing"><i class="bi bi-funnel"></i> Pembersihan Data</a>
+            <a href="/generate-kewajiban"><i class="bi bi-clipboard-check"></i> Kewajiban Pajak</a>
+            <a href="/agregasi"><i class="bi bi-layers"></i> Ringkasan Data</a>
+            <a href="/kmeans"><i class="bi bi-diagram-3"></i> Pengelompokan Pajak</a>
+        </div>
+
+        <div class="nav-links logout-btn">
+            <a href="/logout" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- HEADER -->
+        <div class="top-header animate-fade">
+            <h2 class="welcome-text">Selamat Datang di Sistem Analisis Pajak</h2>
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name={{ session['username'] }}&background=4f46e5&color=fff"
+                    alt="Foto Pengguna">
+                <span>{{ session['username'] }}</span>
+            </div>
+        </div>
+
+        <div class="card-box hero-card animate-fade delay-1">
+            <div class="title">Sistem Analisis Kepatuhan Pajak</div>
+            <div class="subtitle">
+                Sistem ini digunakan untuk membantu menganalisis pola pembayaran pajak perusahaan mulai dari pengolahan
+                data, pemeriksaan kewajiban pajak, hingga pengelompokan wajib pajak berdasarkan tingkat kepatuhan
+                pembayaran.
+            </div>
+        </div>
+
+        <!-- VISUALISASI HASIL ANALISIS -->
+        <div class="card-box animate-fade delay-2 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <div class="title mb-1" style="font-size: 22px; font-weight: 700;">📊 Visualisasi Kepatuhan Wajib
+                        Pajak</div>
+                    <div class="subtitle mb-0" style="font-size: 14px;">Ringkasan grafis hasil clustering K-Means,
+                        Metode Elbow, dan Silhouette Score.</div>
+                </div>
+                {% if has_data %}
+                <span class="badge bg-success px-3 py-2" style="border-radius: 20px;">
+                    <i class="bi bi-check-circle-fill me-1"></i> Data Teranalisis
+                </span>
+                {% else %}
+                <span class="badge bg-secondary px-3 py-2" style="border-radius: 20px;">
+                    <i class="bi bi-info-circle-fill me-1"></i> Belum Ada Data
+                </span>
+                {% endif %}
+            </div>
+
+            {% if not has_data %}
+            <div class="alert alert-info d-flex align-items-center mb-4 border-0 shadow-sm"
+                style="border-radius: 12px; background: rgba(59, 130, 246, 0.1); color: #1e3a8a;" role="alert">
+                <i class="bi bi-info-circle-fill me-3 fs-5" style="color: #3b82f6;"></i>
+                <div>
+                    Belum ada data wajib pajak yang cukup untuk pengelompokan. Menampilkan grafik kosong. Silakan unggah
+                    data pembayaran pajak di menu <a href="/data_input" class="alert-link text-decoration-underline"
+                        style="color: #2563eb;">Masukkan Data</a> untuk memulai analisis.
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row g-4">
+                <!-- 1. K-Means Clustering Visualisasi (Scatter Plot) -->
+                <div class="col-lg-6">
+                    <div class="p-3 border-0"
+                        style="border-radius: 12px; background: #fafafa; border: 1px solid #f1f5f9 !important;">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-diagram-3-fill me-2 fs-5" style="color: var(--primary-color);"></i>
+                                <span class="fw-bold text-dark" style="font-size: 15px;">Klaster K-Means Wajib Pajak</span>
+                            </div>
+                            <!-- Control Dropdowns -->
+                            <div class="d-flex gap-2">
+                                <div class="input-group input-group-sm" style="width: 155px;">
+                                    <label class="input-group-text py-0" style="font-size: 10px; font-weight: 600; background: #eef2ff; color: #4f46e5; border-color: #e2e8f0;">X</label>
+                                    <select class="form-select py-0" id="xAxisSelect" style="font-size: 10px; height: 26px; border-color: #e2e8f0;">
+                                        <option value="tepat" selected>Tepat Waktu (%)</option>
+                                        <option value="telat">Terlambat (%)</option>
+                                        <option value="belum">Belum Bayar (%)</option>
+                                        <option value="avg_telat">Rata-rata Keterlambatan</option>
+                                    </select>
+                                </div>
+                                <div class="input-group input-group-sm" style="width: 155px;">
+                                    <label class="input-group-text py-0" style="font-size: 10px; font-weight: 600; background: #eef2ff; color: #4f46e5; border-color: #e2e8f0;">Y</label>
+                                    <select class="form-select py-0" id="yAxisSelect" style="font-size: 10px; height: 26px; border-color: #e2e8f0;">
+                                        <option value="tepat">Tepat Waktu (%)</option>
+                                        <option value="telat">Terlambat (%)</option>
+                                        <option value="belum">Belum Bayar (%)</option>
+                                        <option value="avg_telat" selected>Rata-rata Keterlambatan</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="kmeansChart"></canvas>
+                        </div>
+                        <div class="mt-2 text-center text-muted" style="font-size: 12px;" id="kmeansAxisLegend">
+                            Visualisasi data interaktif klaster K-Means.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Elbow Method -->
+                <div class="col-lg-3">
+                    <div class="p-3 border-0"
+                        style="border-radius: 12px; background: #fafafa; border: 1px solid #f1f5f9 !important;">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-graph-up-arrow me-2 fs-5" style="color: #10b981;"></i>
+                            <span class="fw-bold text-dark" style="font-size: 15px;">Metode Elbow (Inertia)</span>
+                        </div>
+                        <div style="position: relative; height: 320px; width: 100%;">
+                            <canvas id="elbowChart"></canvas>
+                        </div>
+                        <div class="mt-2 text-center text-muted" style="font-size: 12px;">
+                            Menentukan K optimal (lekukan terjelas).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Silhouette Score -->
+                <div class="col-lg-3">
+                    <div class="p-3 border-0"
+                        style="border-radius: 12px; background: #fafafa; border: 1px solid #f1f5f9 !important;">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-speedometer2 me-2 fs-5" style="color: #f59e0b;"></i>
+                            <span class="fw-bold text-dark" style="font-size: 15px;">Evaluasi Kualitas
+                                (Silhouette)</span>
+                        </div>
+                        <div class="d-flex flex-column align-items-center justify-content-center"
+                            style="height: 290px;">
+                            <div style="position: relative; height: 160px; width: 160px;">
+                                <canvas id="silhouetteChart"></canvas>
+                            </div>
+                            <div class="text-center mt-3">
+                                <div class="fw-bold" style="font-size: 26px; color: var(--primary-color);"
+                                    id="silhouetteScoreText">
+                                    {{ "%.3f"|format(silhouette) if has_data else "0.000" }}
+                                </div>
+                                <div class="fw-semibold px-2 py-1 mt-1 text-xs"
+                                    style="border-radius: 8px; font-size: 12px;" id="silhouetteStatusBadge">
+                                    {% if has_data %}
+                                    {% if silhouette >= 0.7 %}
+                                    <span class="text-success bg-success-subtle px-2 py-1 rounded">Struktur Kuat</span>
+                                    {% elif silhouette >= 0.5 %}
+                                    <span class="text-info bg-info-subtle px-2 py-1 rounded">Struktur Sedang</span>
+                                    {% elif silhouette >= 0.25 %}
+                                    <span class="text-warning bg-warning-subtle px-2 py-1 rounded">Struktur Lemah</span>
+                                    {% else %}
+                                    <span class="text-danger bg-danger-subtle px-2 py-1 rounded">Kurang
+                                        Terstruktur</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted bg-body-secondary px-2 py-1 rounded">Belum Dihitung</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-center text-muted" style="font-size: 12px;">
+                            Skala: -1.0 hingga +1.0.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FITUR -->
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="card-box info-box animate-fade delay-2">
+                    <div class="icon-wrapper icon-blue">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <h5>Masukkan Data</h5>
+                    <p>Masukkan data pembayaran pajak melalui file Excel atau input manual dengan mudah.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box info-box animate-fade delay-3">
+                    <div class="icon-wrapper icon-green">
+                        <i class="bi bi-magic"></i>
+                    </div>
+                    <h5>Pembersihan Data</h5>
+                    <p>Membersihkan data ganda dan memastikan data siap digunakan untuk proses analisis.</p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box info-box animate-fade delay-4">
+                    <div class="icon-wrapper icon-yellow">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5>Pemeriksaan Kepatuhan</h5>
+                    <p>Menentukan status pembayaran pajak seperti tepat waktu, terlambat, atau belum bayar.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card-box info-box animate-fade delay-5">
+                    <div class="icon-wrapper icon-purple">
+                        <i class="bi bi-bar-chart-steps"></i>
+                    </div>
+                    <h5>Ringkasan Data</h5>
+                    <p>Menyusun data menjadi informasi yang lebih sederhana dan mudah dianalisis.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card-box info-box animate-fade delay-5">
+                    <div class="icon-wrapper icon-pink">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h5>Pengelompokan Wajib Pajak</h5>
+                    <p>Mengelompokkan wajib pajak berdasarkan pola kepatuhan pembayaran menggunakan metode K-Means.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- INFO SISTEM -->
+        <div class="system-info animate-fade delay-5">
+            <h6><i class="bi bi-info-circle-fill"></i> Informasi Sistem</h6>
+            <div class="tech-stack">
+                <div class="tech-badge"><i class="bi bi-robot"></i> Analisis Data K-Means</div>
+                <div class="tech-badge"><i class="bi bi-code-slash"></i> Python dan Flask</div>
+                <div class="tech-badge"><i class="bi bi-database"></i> Basis Data MySQL</div>
+                <div class="tech-badge"><i class="bi bi-graph-up-arrow"></i> Metode Elbow dan Silhouette</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Chart.js Scripts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const hasData = {{ has_data| tojson }};
+
+            // --- 1. DATA PREPARATION ---
+            let elbowLabels = [];
+            let elbowInertiaData = [];
+            let silhouetteScoreVal = 0;
+
+            if (hasData) {
+                const rawKmeansData = {{ data| tojson }};
+                const rawCentroids = {{ centroids| tojson if centroids is defined else [] }};
+                const rawElbowInertia = {{ inertia| tojson }};
+                const rawElbowKRange = {{ k_range| tojson }};
+                silhouetteScoreVal = {{ silhouette | tojson }};
+
+                elbowLabels = rawElbowKRange.map(k => 'K = ' + k);
+                elbowInertiaData = rawElbowInertia;
+
+                // Dynamic scatter plot update logic
+                let kmeansChartInstance = null;
+
+                function updateKmeansChart() {
+                    const xKey = document.getElementById('xAxisSelect').value;
+                    const yKey = document.getElementById('yAxisSelect').value;
+
+                    const axisLabels = {
+                        tepat: 'Tepat Waktu (%)',
+                        telat: 'Terlambat (%)',
+                        belum: 'Belum Bayar (%)',
+                        avg_telat: 'Rata-rata Keterlambatan (Hari)'
+                    };
+
+                    const isPct = (key) => key !== 'avg_telat';
+
+                    // Group points by cluster
+                    const groups = {};
+                    rawKmeansData.forEach(item => {
+                        const cluster = item.cluster;
+                        if (!groups[cluster]) {
+                            groups[cluster] = {
+                                points: [],
+                                label: item.label
+                            };
+                        }
+                        
+                        let valX = item[xKey];
+                        let valY = item[yKey];
+                        if (isPct(xKey)) valX = Math.round(valX * 100 * 10) / 10;
+                        if (isPct(yKey)) valY = Math.round(valY * 100 * 10) / 10;
+
+                        groups[cluster].points.push({
+                            x: valX,
+                            y: valY,
+                            nama: item.nama,
+                            npwp: item.npwp,
+                            tepat: Math.round(item.tepat * 100 * 10) / 10,
+                            telat: Math.round(item.telat * 100 * 10) / 10,
+                            belum: Math.round(item.belum * 100 * 10) / 10,
+                            avg_telat: item.avg_telat,
+                            isCentroid: false
+                        });
+                    });
+
+                    // Centroids
+                    const centroidGroups = {};
+                    rawCentroids.forEach(c => {
+                        let valX = c[xKey];
+                        let valY = c[yKey];
+                        if (isPct(xKey)) valX = Math.round(valX * 100 * 10) / 10;
+                        if (isPct(yKey)) valY = Math.round(valY * 100 * 10) / 10;
+
+                        centroidGroups[c.cluster] = {
+                            x: valX,
+                            y: valY,
+                            label: c.label,
+                            tepat: Math.round(c.tepat * 100 * 10) / 10,
+                            telat: Math.round(c.telat * 100 * 10) / 10,
+                            belum: Math.round(c.belum * 100 * 10) / 10,
+                            avg_telat: c.avg_telat,
+                            isCentroid: true
+                        };
+                    });
+
+                    const colors = {
+                        'patuh': { bg: 'rgba(16, 185, 129, 0.75)', border: 'rgb(16, 185, 129)' },
+                        'kurang patuh': { bg: 'rgba(245, 158, 11, 0.75)', border: 'rgb(245, 158, 11)' },
+                        'tidak patuh': { bg: 'rgba(239, 68, 68, 0.75)', border: 'rgb(239, 68, 68)' }
+                    };
+
+                    const labelOrder = { 'patuh': 0, 'kurang patuh': 1, 'tidak patuh': 2 };
+                    const sortedClusters = Object.keys(groups).sort((a, b) => {
+                        const labelA = (groups[a].label || '').toLowerCase();
+                        const labelB = (groups[b].label || '').toLowerCase();
+                        return (labelOrder[labelA] ?? 9) - (labelOrder[labelB] ?? 9);
+                    });
+
+                    const datasets = [];
+                    sortedClusters.forEach(cluster => {
+                        const itemLabel = groups[cluster].label || '';
+                        const style = colors[itemLabel.toLowerCase()] || { bg: 'rgba(79, 70, 229, 0.75)', border: 'rgb(79, 70, 229)' };
+
+                        // WP points
+                        datasets.push({
+                            label: `${itemLabel} (Klaster ${cluster})`,
+                            data: groups[cluster].points,
+                            backgroundColor: style.bg,
+                            borderColor: style.border,
+                            borderWidth: 1.5,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointStyle: 'circle'
+                        });
+
+                        // Centroid
+                        const cent = centroidGroups[cluster];
+                        if (cent) {
+                            datasets.push({
+                                label: `Centroid ${itemLabel}`,
+                                data: [{
+                                    x: cent.x,
+                                    y: cent.y,
+                                    tepat: cent.tepat,
+                                    telat: cent.telat,
+                                    belum: cent.belum,
+                                    avg_telat: cent.avg_telat,
+                                    label: cent.label,
+                                    isCentroid: true,
+                                    cluster: cluster
+                                }],
+                                backgroundColor: '#ffffff',
+                                borderColor: style.border,
+                                borderWidth: 3.5,
+                                pointRadius: 12,
+                                pointHoverRadius: 14,
+                                pointStyle: 'triangle',
+                                showLine: false
+                            });
+                        }
+                    });
+
+                    const xMin = isPct(xKey) ? -5 : undefined;
+                    const xMax = isPct(xKey) ? 105 : undefined;
+                    const yMin = isPct(yKey) ? -5 : undefined;
+                    const yMax = isPct(yKey) ? 105 : undefined;
+
+                    const xTicksConfig = isPct(xKey) ? { callback: value => value + '%' } : {};
+                    const yTicksConfig = isPct(yKey) ? { callback: value => value + '%' } : {};
+
+                    if (kmeansChartInstance) {
+                        kmeansChartInstance.data.datasets = datasets;
+                        kmeansChartInstance.options.scales.x.title.text = axisLabels[xKey];
+                        kmeansChartInstance.options.scales.y.title.text = axisLabels[yKey];
+                        kmeansChartInstance.options.scales.x.min = xMin;
+                        kmeansChartInstance.options.scales.x.max = xMax;
+                        kmeansChartInstance.options.scales.y.min = yMin;
+                        kmeansChartInstance.options.scales.y.max = yMax;
+                        kmeansChartInstance.options.scales.x.ticks = xTicksConfig;
+                        kmeansChartInstance.options.scales.y.ticks = yTicksConfig;
+                        kmeansChartInstance.update();
+                    } else {
+                        const ctxKmeans = document.getElementById('kmeansChart').getContext('2d');
+                        kmeansChartInstance = new Chart(ctxKmeans, {
+                            type: 'scatter',
+                            data: { datasets: datasets },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                        labels: {
+                                            usePointStyle: true,
+                                            font: { family: 'Inter', size: 10, weight: '500' },
+                                            filter: (item) => !item.text.includes('Centroid')
+                                        }
+                                    },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                const pt = context.raw;
+                                                if (pt.isCentroid) {
+                                                    return [
+                                                        `⭐ PUSAT KLASTER (CENTROID): ${pt.label.toUpperCase()}`,
+                                                        `Rata-rata Tepat Waktu: ${pt.tepat}%`,
+                                                        `Rata-rata Terlambat: ${pt.telat}%`,
+                                                        `Rata-rata Belum Bayar: ${pt.belum}%`,
+                                                        `Rata-rata Keterlambatan: ${pt.avg_telat} Hari`
+                                                    ];
+                                                }
+                                                return [
+                                                    `Wajib Pajak: ${pt.nama}`,
+                                                    `NPWP: ${pt.npwp}`,
+                                                    `Tepat Waktu: ${pt.tepat}%`,
+                                                    `Terlambat: ${pt.telat}%`,
+                                                    `Belum Bayar: ${pt.belum}%`,
+                                                    `Rata-rata Keterlambatan: ${pt.avg_telat} Hari`
+                                                ];
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        min: xMin,
+                                        max: xMax,
+                                        title: {
+                                            display: true,
+                                            text: axisLabels[xKey],
+                                            font: { family: 'Inter', size: 11, weight: '600' }
+                                        },
+                                        ticks: xTicksConfig
+                                    },
+                                    y: {
+                                        min: yMin,
+                                        max: yMax,
+                                        title: {
+                                            display: true,
+                                            text: axisLabels[yKey],
+                                            font: { family: 'Inter', size: 11, weight: '600' }
+                                        },
+                                        ticks: yTicksConfig
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Update secondary visual legend text
+                    document.getElementById('kmeansAxisLegend').innerText = 
+                        `Sumbu X: ${axisLabels[xKey]} | Sumbu Y: ${axisLabels[yKey]} (Segitiga putih mewakili Centroid/Pusat Klaster)`;
+                }
+
+                document.getElementById('xAxisSelect').addEventListener('change', updateKmeansChart);
+                document.getElementById('yAxisSelect').addEventListener('change', updateKmeansChart);
+
+                // Initial render
+                updateKmeansChart();
+            } else {
+                // Fallback polos state
+                const ctxKmeans = document.getElementById('kmeansChart').getContext('2d');
+                new Chart(ctxKmeans, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Belum Ada Data',
+                            data: [],
+                            backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                            borderColor: 'rgb(156, 163, 175)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { min: 0, max: 100 },
+                            y: { min: 0, max: 100 }
+                        }
+                    }
+                });
+
+                elbowLabels = ['K = 2', 'K = 3', 'K = 4', 'K = 5'];
+                elbowInertiaData = [0, 0, 0, 0];
+                silhouetteScoreVal = 0;
+            }
+
+        // --- 3. ELBOW METHOD CHART ---
+        const ctxElbow = document.getElementById('elbowChart').getContext('2d');
+        new Chart(ctxElbow, {
+            type: 'line',
+            data: {
+                labels: elbowLabels,
+                datasets: [{
+                    label: 'Inertia',
+                    data: elbowInertiaData,
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2.5,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Jumlah Klaster (K)',
+                            font: { family: 'Inter', size: 12, weight: '600' }
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Inersia / WCSS',
+                            font: { family: 'Inter', size: 12, weight: '600' }
+                        },
+                        beginAtZero: true,
+                        // Empty state support
+                        max: hasData ? undefined : 100
+                    }
+                }
+            }
+        });
+
+        // --- 4. SILHOUETTE SCORE GAUGE ---
+        const ctxSilhouette = document.getElementById('silhouetteChart').getContext('2d');
+
+        // Silhouette score can technically be negative, scale it nicely for representation [0, 1]
+        const gaugeValue = Math.max(0, silhouetteScoreVal);
+
+        new Chart(ctxSilhouette, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [gaugeValue, 1 - gaugeValue],
+                    backgroundColor: [
+                        hasData ? 'rgb(79, 70, 229)' : 'rgba(156, 163, 175, 0.2)',
+                        'rgba(0, 0, 0, 0.05)'
+                    ],
+                    borderWidth: 0,
+                    weight: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '80%',
+                circumference: 180,
+                rotation: 270,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+});
+    </script>
+
+</body>
+
+</html>
